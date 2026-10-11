@@ -301,7 +301,8 @@ function fillSelect(sel, items) {
 }
 const isClosed = t => S.closed.indexOf(t.status) !== -1;
 const statusLabel = c => (S.statuses.find(s => s.code === c) || {}).label || c;
-const catLabel = c => (S.categories.find(x => x.code === c) || {}).label || c;
+const RETIRED_CAT = 'ประเภทที่เลิกใช้';
+const catLabel = c => (S.categories.find(x => x.code === c) || {}).label || RETIRED_CAT;
 const memberName = k => (S.members.find(m => m.memberKey === k) || {}).displayName || k;
 function thDate(s) {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return '-';
@@ -365,6 +366,10 @@ function updateMaskedUi() {
 function openForm(task) {
   S.editing = task || null;
   $('dlg-title').textContent = task ? 'แก้ไขงาน ' + task.id : 'เพิ่มงาน';
+  // งานเก่าที่ใช้ประเภทที่เลิกใช้แล้ว: แสดงไว้ให้คงค่าเดิมจนกว่าผู้ใช้เลือกประเภทใหม่
+  const catItems = S.categories.map(c => ({ v: c.code, t: c.label }));
+  if (task && !S.categories.some(c => c.code === task.category)) catItems.push({ v: task.category, t: RETIRED_CAT + ' (กรุณาเลือกใหม่)' });
+  fillSelect($('t-category'), catItems);
   $('t-category').value = task ? task.category : S.categories[0].code;
   $('t-masked').checked = task ? task.masked : false;
   $('t-auditee').value = task ? task.auditee : '';
