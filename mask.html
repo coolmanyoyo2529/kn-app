@@ -27,6 +27,11 @@ label{cursor:pointer}
 input[type=file]{font:inherit;max-width:100%}
 select,input[type=text]{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
 input[type=text].pfx{width:70px}
+input[type=password]{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:8px}
+.grid2 label{display:grid;gap:4px;font-size:14px;color:var(--muted)}
+.grid2 input{width:100%}
+.ghost-label{display:inline-block;color:var(--accent);border:1px solid var(--accent);padding:8px 14px;border-radius:8px}
 button.primary{background:var(--accent);color:var(--accent-ink);border:0;padding:10px 18px;border-radius:8px;font:inherit;cursor:pointer}
 button.primary:disabled{opacity:.45;cursor:not-allowed}
 button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:8px 14px;border-radius:8px;font:inherit;cursor:pointer}
@@ -51,11 +56,11 @@ ul.sum{margin:8px 0 0;padding-left:20px}
 <h1>เครื่องมือปิดข้อมูลระบุตัวตน</h1>
 <p class="sub">แทนชื่อบุคคล ผู้ขาย เลขบัตร เลขบัญชี ด้วยรหัส ก่อนส่งข้อมูลให้ AI วิเคราะห์ แล้วเปิดรหัสกลับเมื่อได้ผลลัพธ์</p>
 <div class="banner">🔒 หน้านี้ทำงานในเครื่องคุณเท่านั้น ถูกล็อกไม่ให้ส่งข้อมูลออกอินเทอร์เน็ต ใช้งานได้แม้ถอดสายเน็ต</div>
-<p class="note" style="margin:-8px 0 20px">ส่วนหนึ่งของระบบทะเบียนคุมงาน · แนะนำให้ใช้บนคอมพิวเตอร์ เพราะต้องเลือกไฟล์และดาวน์โหลดไฟล์ · ใช้เสร็จปิดแท็บนี้ได้เลย</p>
 
 <div class="tabs" role="tablist">
   <button class="tab" role="tab" aria-selected="true" data-tab="mask">① ปิดชื่อ (ก่อนส่ง AI)</button>
   <button class="tab" role="tab" aria-selected="false" data-tab="unmask">② เปิดรหัสกลับ (หลังได้ผล)</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="codes">③ ทะเบียนรหัส (ชื่อหน่วย/เรื่อง)</button>
   <button class="tab" role="tab" aria-selected="false" data-tab="help">วิธีใช้</button>
 </div>
 
@@ -118,6 +123,47 @@ ul.sum{margin:8px 0 0;padding-left:20px}
   </div>
 </section>
 
+<!-- ================= CODE REGISTER ================= -->
+<section id="tab-codes" class="hidden">
+  <div class="card" id="lockCard">
+    <h2><span class="step">1</span>ปลดล็อกทะเบียนรหัส</h2>
+    <p class="note" id="lockNote">ทะเบียนนี้เก็บชื่อจริงคู่กับรหัสไว้ในเบราว์เซอร์ของเครื่องนี้เท่านั้น แบบเข้ารหัสด้วยรหัสผ่านของคุณ</p>
+    <div class="row">
+      <input type="password" id="pass1" placeholder="รหัสผ่าน" autocomplete="off">
+      <input type="password" id="pass2" placeholder="ยืนยันรหัสผ่าน" class="hidden" autocomplete="off">
+      <button class="primary" id="unlockBtn">ปลดล็อก</button>
+    </div>
+    <div id="lockMsg" class="hidden" style="margin-top:10px"></div>
+  </div>
+
+  <div id="codesBody" class="hidden">
+    <div class="card">
+      <h2><span class="step">2</span>สร้างรหัสใหม่</h2>
+      <div class="grid2">
+        <label>ชื่อหน่วยรับตรวจ<input type="text" id="cAuditee" maxlength="200" autocomplete="off"></label>
+        <label>ชื่อเรื่อง<input type="text" id="cTitle" maxlength="200" autocomplete="off"></label>
+        <label>คำนำหน้ารหัส<input type="text" id="cPrefix" maxlength="20" autocomplete="off"></label>
+      </div>
+      <p class="note">กรอกอย่างน้อย 1 ช่อง · ระบบออกรหัสหน่วยรับตรวจ เช่น <code>K-70-001</code> และรหัสเรื่อง <code>K-70-001-T</code> (คำนำหน้าเริ่มต้นตามปีงบประมาณปัจจุบัน แก้ได้) ให้อัตโนมัติ</p>
+      <button class="primary" id="genBtn">สร้างรหัสและบันทึก</button>
+      <div id="genResult" class="hidden" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">3</span>รหัสที่บันทึกไว้ <span class="note" id="regCount"></span></h2>
+      <div class="row" style="margin-bottom:10px">
+        <input type="text" id="cSearch" placeholder="ค้นหารหัส หน่วยรับตรวจ หรือชื่อเรื่อง" style="flex:1 1 240px">
+        <button class="ghost" id="useKeyBtn">ใช้เปิดรหัสในแท็บ ②</button>
+        <button class="ghost" id="exportBtn">สำรองเป็นไฟล์กุญแจ</button>
+        <label class="ghost-label">นำเข้าไฟล์กุญแจ<input type="file" id="importIn" accept=".xlsx,.csv" class="hidden"></label>
+        <button class="ghost" id="lockBtn">ล็อก</button>
+      </div>
+      <div class="tablewrap"><table id="regTable"><thead><tr><th>รหัสหน่วยรับตรวจ</th><th>หน่วยรับตรวจ</th><th>รหัสเรื่อง</th><th>ชื่อเรื่อง</th><th>สร้างเมื่อ</th><th></th></tr></thead><tbody></tbody></table></div>
+      <p class="note" id="backupNote" style="margin-top:8px"></p>
+    </div>
+  </div>
+</section>
+
 <!-- ================= HELP ================= -->
 <section id="tab-help" class="hidden">
   <div class="card">
@@ -133,6 +179,18 @@ ul.sum{margin:8px 0 0;padding-left:20px}
       <li>เปิดไฟล์ปิดชื่อตรวจด้วยตาอีกครั้งก่อนส่ง</li>
       <li>เมื่อได้ผลจาก AI ไปที่แท็บ ② ใส่ไฟล์กุญแจ แล้ววางข้อความหรือใส่ไฟล์ผลลัพธ์เพื่อเปิดรหัสกลับเป็นชื่อจริง</li>
     </ol>
+    <h2>แท็บ ③ ทะเบียนรหัส</h2>
+    <ol>
+      <li>ครั้งแรกตั้งรหัสผ่านอย่างน้อย 8 ตัว ครั้งต่อไปใส่รหัสผ่านเดิมเพื่อปลดล็อก</li>
+      <li>กรอกชื่อหน่วยรับตรวจ และ/หรือ ชื่อเรื่อง แล้วกด <b>สร้างรหัสและบันทึก</b> ระบบออกรหัสต่อจากเลขล่าสุดให้เอง</li>
+      <li>คัดลอกรหัสไปกรอกในทะเบียนคุมงาน โดยติ๊ก "ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง"</li>
+      <li>ภายหลังค้นหาได้ว่ารหัสไหนคือชื่ออะไร หรือกด <b>ใช้เปิดรหัสในแท็บ ②</b> เพื่อแปลงรหัสในข้อความกลับเป็นชื่อจริง</li>
+    </ol>
+    <ul>
+      <li>ข้อมูลเก็บในเบราว์เซอร์ของเครื่องนี้เท่านั้น เปิดจากเครื่องอื่นหรือเบราว์เซอร์อื่นจะไม่เห็น</li>
+      <li>ถ้าลืมรหัสผ่าน หรือล้างข้อมูลเบราว์เซอร์ ทะเบียนจะหาย จึงต้องกด <b>สำรองเป็นไฟล์กุญแจ</b> เป็นประจำ ไฟล์นี้นำเข้าคืนได้</li>
+      <li>ไม่ใช้งาน 15 นาที ทะเบียนล็อกเอง</li>
+    </ul>
     <h2>ข้อควรระวัง</h2>
     <ul>
       <li>ใช้รหัสแทนชื่อแล้วยัง<b>อาจระบุตัวได้</b> ถ้าข้อมูลที่เหลือเจาะจงมาก เช่น ผู้ขายรายเดียวในตำบล หรือสัญญามูลค่าเฉพาะตัว ให้พิจารณาลบคอลัมน์หรือส่งเป็นยอดสรุปแทน</li>
@@ -190,7 +248,7 @@ let keyMap=null; // code->original
 // tabs
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['mask','unmask','help'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
+  ['mask','unmask','codes','help'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
 }));
 
 function norm(v){ if(v===null||v===undefined) return ''; if(v instanceof Date) return v.toLocaleDateString('th-TH'); return String(v).replace(/\s+/g,' ').trim(); }
@@ -346,6 +404,168 @@ $('#resIn').addEventListener('change',async e=>{
   const r=$('#resResult'); r.className='ok'; r.classList.remove('hidden');
   r.innerHTML=`ดาวน์โหลด <code>${esc(name)}</code> แล้ว · เปิดรหัส ${n.toLocaleString()} ช่อง · <b>ไฟล์นี้มีข้อมูลจริง เก็บในเครื่องเท่านั้น</b>`;
 });
+// ---------- CODE REGISTER (ทะเบียนรหัส) ----------
+const STORE='kn-coderegister-v1', IDLE_MS=15*60*1000;
+const PREFIX_RE=/^[A-Za-z0-9][A-Za-z0-9\-\/_.]{0,19}$/;
+let reg=null, regKey=null, regSalt=null, idleTimer=null;
+const te=new TextEncoder(), td=new TextDecoder();
+function toB64(u){ let s=''; for(let i=0;i<u.length;i++) s+=String.fromCharCode(u[i]); return btoa(s); }
+function fromB64(s){ const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+function lsGet(){ try{ return localStorage.getItem(STORE); }catch(e){ return undefined; } }
+function lsSet(v){ try{ localStorage.setItem(STORE,v); return true; }catch(e){ return false; } }
+function lsDel(){ try{ localStorage.removeItem(STORE); }catch(e){} }
+function defaultPrefix(){ const d=new Date(); const fy=d.getFullYear()+543+(d.getMonth()>=9?1:0); return 'K-'+String(fy).slice(-2)+'-'; }
+function today(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function thDate(s){ if(!s) return '-'; const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; return (+s.slice(8,10))+' '+m[+s.slice(5,7)-1]+' '+String(+s.slice(0,4)+543).slice(-2); }
+function msg(el,cls,html){ el.className=cls; el.innerHTML=html; el.classList.remove('hidden'); }
+
+async function deriveKey(pass,salt){
+  const base=await crypto.subtle.importKey('raw',te.encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function saveReg(){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},regKey,te.encode(JSON.stringify(reg))));
+  if(!lsSet(JSON.stringify({v:1,salt:toB64(regSalt),iv:toB64(iv),ct:toB64(ct)}))){
+    alert('บันทึกลงเบราว์เซอร์ไม่ได้ (อาจเปิดในโหมดไม่ระบุตัวตน หรือเบราว์เซอร์ปิดการเก็บข้อมูล) กรุณากด "สำรองเป็นไฟล์กุญแจ" ทันที');
+  }
+}
+function refreshLockUi(){
+  const stored=lsGet(), setup=!stored;
+  $('#pass2').classList.toggle('hidden',!setup);
+  $('#unlockBtn').textContent=setup?'ตั้งรหัสผ่านและเริ่มใช้':'ปลดล็อก';
+  $('#lockNote').textContent=setup
+    ? 'ยังไม่มีทะเบียนรหัสในเครื่องนี้ ตั้งรหัสผ่านอย่างน้อย 8 ตัว ทะเบียนจะเก็บในเบราว์เซอร์ของเครื่องนี้เท่านั้น แบบเข้ารหัสด้วยรหัสผ่านนี้ ถ้าลืมรหัสผ่านจะเปิดไม่ได้อีก'
+    : 'ใส่รหัสผ่านเพื่อเปิดทะเบียนรหัสของเครื่องนี้';
+}
+function bumpIdle(){ if(!reg) return; clearTimeout(idleTimer); idleTimer=setTimeout(()=>lockReg('ล็อกอัตโนมัติ เนื่องจากไม่มีการใช้งาน 15 นาที'),IDLE_MS); }
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,bumpIdle,{passive:true}));
+function lockReg(note){
+  reg=null; regKey=null; regSalt=null; clearTimeout(idleTimer);
+  $('#codesBody').classList.add('hidden'); $('#lockCard').classList.remove('hidden');
+  $('#regTable tbody').innerHTML=''; ['#cAuditee','#cTitle','#cSearch','#pass1','#pass2'].forEach(s=>$(s).value='');
+  $('#genResult').classList.add('hidden');
+  refreshLockUi();
+  if(note) msg($('#lockMsg'),'ok',esc(note)); else $('#lockMsg').classList.add('hidden');
+}
+
+$('#unlockBtn').addEventListener('click',async()=>{
+  const lm=$('#lockMsg');
+  if(!window.crypto||!crypto.subtle){ msg(lm,'warn','เบราว์เซอร์นี้ไม่รองรับการเข้ารหัส กรุณาใช้ Chrome หรือ Edge รุ่นใหม่'); return; }
+  const stored=lsGet();
+  if(stored===undefined){ msg(lm,'warn','เบราว์เซอร์นี้ไม่อนุญาตให้เก็บข้อมูล (อาจเป็นโหมดไม่ระบุตัวตน) ใช้ทะเบียนรหัสไม่ได้'); return; }
+  const p1=$('#pass1').value;
+  $('#unlockBtn').disabled=true;
+  try{
+    if(!stored){
+      if(p1.length<8){ msg(lm,'warn','รหัสผ่านต้องยาวอย่างน้อย 8 ตัว'); return; }
+      if(p1!==$('#pass2').value){ msg(lm,'warn','รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
+      regSalt=crypto.getRandomValues(new Uint8Array(16)); regKey=await deriveKey(p1,regSalt);
+      reg={items:[],lastBackup:null}; await saveReg();
+    }else{
+      let o; try{ o=JSON.parse(stored); }catch(e){ msg(lm,'warn','ข้อมูลทะเบียนในเครื่องเสียหาย นำเข้าจากไฟล์กุญแจที่สำรองไว้แทน'); return; }
+      regSalt=fromB64(o.salt); regKey=await deriveKey(p1,regSalt);
+      try{ reg=JSON.parse(td.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(o.iv)},regKey,fromB64(o.ct)))); }
+      catch(e){ regKey=null; regSalt=null; msg(lm,'warn','รหัสผ่านไม่ถูกต้อง'); return; }
+    }
+    $('#pass1').value=''; $('#pass2').value=''; lm.classList.add('hidden');
+    $('#lockCard').classList.add('hidden'); $('#codesBody').classList.remove('hidden');
+    if(!$('#cPrefix').value) $('#cPrefix').value=defaultPrefix();
+    renderReg(); bumpIdle(); $('#cAuditee').focus();
+  }finally{ $('#unlockBtn').disabled=false; }
+});
+$('#pass1').addEventListener('keydown',e=>{ if(e.key==='Enter' && $('#pass2').classList.contains('hidden')) $('#unlockBtn').click(); });
+$('#pass2').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#unlockBtn').click(); });
+$('#lockBtn').addEventListener('click',()=>lockReg('ล็อกทะเบียนแล้ว'));
+
+function copyText(t,btn){
+  const done=()=>{ const o=btn.textContent; btn.textContent='คัดลอกแล้ว'; setTimeout(()=>btn.textContent=o,1500); };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,()=>fallback());
+  else fallback();
+  function fallback(){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){} ta.remove(); }
+}
+
+$('#genBtn').addEventListener('click',async()=>{
+  const a=norm($('#cAuditee').value), t=norm($('#cTitle').value), pfx=$('#cPrefix').value.trim();
+  const gr=$('#genResult');
+  if(!a && !t){ msg(gr,'warn','กรอกชื่อหน่วยรับตรวจหรือชื่อเรื่องอย่างน้อย 1 ช่อง'); return; }
+  if(!PREFIX_RE.test(pfx)){ msg(gr,'warn','คำนำหน้ารหัสใช้ได้เฉพาะอักษรอังกฤษ ตัวเลข และ - / _ . ไม่เกิน 20 ตัว เช่น K-69-'); return; }
+  const dup=reg.items.find(x=>x.auditee===a && x.title===t);
+  if(dup && !confirm('มีรายการชื่อเดียวกันอยู่แล้ว รหัส '+dup.code+'\nต้องการสร้างรหัสใหม่ซ้ำอีกหรือไม่?')) return;
+  let max=0;
+  reg.items.forEach(x=>{ if(x.code.indexOf(pfx)===0){ const n=x.code.slice(pfx.length); if(/^\d+$/.test(n)) max=Math.max(max,+n); } });
+  const code=pfx+String(max+1).padStart(3,'0');
+  const item={code,titleCode:code+'-T',auditee:a,title:t,created:today()};
+  reg.items.push(item); await saveReg(); renderReg();
+  $('#cAuditee').value=''; $('#cTitle').value='';
+  gr.className='ok'; gr.innerHTML='';
+  const parts=[];
+  if(a) parts.push(['รหัสหน่วยรับตรวจ',item.code]);
+  if(t) parts.push(['รหัสเรื่อง',item.titleCode]);
+  parts.forEach(([lbl,c])=>{ const row=document.createElement('div'); row.className='row'; row.style.margin='4px 0';
+    row.innerHTML='<span>'+lbl+': <b><code>'+esc(c)+'</code></b></span>'; const b=document.createElement('button'); b.className='ghost'; b.textContent='คัดลอก';
+    b.addEventListener('click',()=>copyText(c,b)); row.appendChild(b); gr.appendChild(row); });
+  const n=document.createElement('p'); n.className='note'; n.style.margin='6px 0 0';
+  n.textContent='บันทึกแล้ว นำรหัสไปกรอกในทะเบียนคุมงาน โดยติ๊ก "ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง"'; gr.appendChild(n);
+  gr.classList.remove('hidden');
+});
+
+function renderReg(){
+  if(!reg) return;
+  const q=$('#cSearch').value.trim().toLowerCase();
+  const rows=reg.items.filter(x=>!q||(x.code+' '+x.titleCode+' '+x.auditee+' '+x.title).toLowerCase().includes(q)).slice().reverse();
+  $('#regCount').textContent='('+reg.items.length.toLocaleString()+' รายการ)';
+  const tb=$('#regTable tbody');
+  tb.innerHTML=rows.length?rows.map(x=>`<tr><td><code>${esc(x.code)}</code></td><td>${esc(x.auditee||'-')}</td><td>${x.title?'<code>'+esc(x.titleCode)+'</code>':'-'}</td><td>${esc(x.title||'-')}</td><td>${thDate(x.created)}</td><td><button class="ghost delBtn" data-code="${esc(x.code)}">ลบ</button></td></tr>`).join('')
+    :'<tr><td colspan="6" class="note">'+(reg.items.length?'ไม่พบรายการที่ค้นหา':'ยังไม่มีรหัส สร้างรหัสแรกได้ที่ข้อ 2')+'</td></tr>';
+  tb.querySelectorAll('.delBtn').forEach(b=>b.addEventListener('click',async()=>{
+    const c=b.dataset.code; if(!confirm('ลบรหัส '+c+' ออกจากทะเบียน?\nถ้ายังใช้รหัสนี้อยู่ในทะเบียนคุมงาน จะเปิดกลับเป็นชื่อจริงไม่ได้อีก')) return;
+    reg.items=reg.items.filter(x=>x.code!==c); await saveReg(); renderReg();
+  }));
+  $('#backupNote').textContent=reg.lastBackup
+    ? 'สำรองเป็นไฟล์ล่าสุดเมื่อ '+thDate(reg.lastBackup)+' · สำรองใหม่ทุกครั้งที่เพิ่มรหัส เผื่อลืมรหัสผ่านหรือเบราว์เซอร์ถูกล้างข้อมูล'
+    : 'ยังไม่เคยสำรอง · กด "สำรองเป็นไฟล์กุญแจ" แล้วเก็บไฟล์ไว้ในที่ปลอดภัย เผื่อลืมรหัสผ่านหรือเบราว์เซอร์ถูกล้างข้อมูล';
+}
+$('#cSearch').addEventListener('input',renderReg);
+
+$('#exportBtn').addEventListener('click',async()=>{
+  if(!reg.items.length){ alert('ยังไม่มีรหัสให้สำรอง'); return; }
+  const rows=[['รหัส','ข้อมูลจริง','มาจากคอลัมน์','สร้างเมื่อ']];
+  reg.items.forEach(x=>{ if(x.auditee) rows.push([x.code,x.auditee,'หน่วยรับตรวจ',x.created]); if(x.title) rows.push([x.titleCode,x.title,'ชื่อเรื่อง',x.created]); });
+  const kb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(kb,XLSX.utils.aoa_to_sheet(rows),'กุญแจ');
+  XLSX.utils.book_append_sheet(kb,XLSX.utils.aoa_to_sheet([['คำเตือน'],['ไฟล์นี้คือทะเบียนรหัสคู่กับชื่อจริง ถือเป็นข้อมูลลับ'],['ห้ามส่งให้ AI หรือบุคคลอื่น ห้ามอัปโหลดขึ้นระบบออนไลน์ เก็บในที่ปลอดภัยเท่านั้น']]),'คำเตือน');
+  download(kb,`ทะเบียนรหัส_กุญแจ_${stamp()}.xlsx`);
+  reg.lastBackup=today(); await saveReg(); renderReg();
+});
+
+$('#importIn').addEventListener('change',async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{
+    const k=XLSX.read(await readFile(f),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(k.Sheets[k.SheetNames[0]],{header:1,defval:''}).slice(1);
+    const byCode=new Map(reg.items.map(x=>[x.code,x])); let added=0, merged=0;
+    rows.forEach(r=>{
+      const code=String(r[0]||'').trim(), val=norm(r[1]), col=String(r[2]||'').trim(), created=String(r[3]||'').trim()||today();
+      if(!code||!val) return;
+      if(col==='หน่วยรับตรวจ'){ let x=byCode.get(code); if(!x){ x={code,titleCode:code+'-T',auditee:'',title:'',created}; byCode.set(code,x); reg.items.push(x); added++; } if(!x.auditee){ x.auditee=val; merged++; } }
+      else if(col==='ชื่อเรื่อง' && /-T$/.test(code)){ const base=code.slice(0,-2); let x=byCode.get(base); if(!x){ x={code:base,titleCode:code,auditee:'',title:'',created}; byCode.set(base,x); reg.items.push(x); added++; } if(!x.title){ x.title=val; merged++; } }
+    });
+    if(!merged){ alert('ไม่พบรายการใหม่ในไฟล์นี้ (ใช้ได้กับไฟล์ที่สำรองจากทะเบียนรหัสเท่านั้น)'); return; }
+    reg.items.sort((a,b)=>a.created<b.created?-1:a.created>b.created?1:0);
+    await saveReg(); renderReg(); alert('นำเข้าแล้ว '+added+' รหัส');
+  }catch(err){ alert('อ่านไฟล์ไม่ได้: '+err.message); }
+});
+
+$('#useKeyBtn').addEventListener('click',()=>{
+  if(!reg.items.length){ alert('ยังไม่มีรหัสในทะเบียน'); return; }
+  keyMap=new Map(); reg.items.forEach(x=>{ if(x.auditee) keyMap.set(x.code,x.auditee); if(x.title) keyMap.set(x.titleCode,x.title); });
+  $('#keyInfo').textContent=`ใช้ทะเบียนรหัสเป็นกุญแจแล้ว ${keyMap.size.toLocaleString()} รหัส`; $('#keyInfo').classList.remove('hidden');
+  $('#txtBtn').disabled=false; $('#resIn').disabled=false;
+  document.querySelector('.tab[data-tab="unmask"]').click();
+});
+refreshLockUi();
+
 })();
 </script>
 </body>
