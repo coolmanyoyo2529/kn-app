@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>ทะเบียนคุมงาน</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #5d6677; --line: #dde1e8;
+    --accent: #1f5fbf; --accent-text: #ffffff; --danger: #b42318; --ok: #1a7f37;
+    --chip-assigned: #e8eefb; --chip-progress: #fff4d6; --chip-waiting: #f3e8fd; --chip-done: #e3f4e8; --chip-cancel: #eceef1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --card: #1b2029; --text: #e7eaf0; --muted: #9aa3b2; --line: #2c3340;
+      --accent: #5b8fe0; --accent-text: #0d1117; --danger: #ff7b72; --ok: #56d364;
+      --chip-assigned: #1f2d47; --chip-progress: #3d3317; --chip-waiting: #33244a; --chip-done: #18341f; --chip-cancel: #2a2f38;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", Tahoma, sans-serif; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+  .center { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  h1 { font-size: 20px; margin: 0; }
+  .muted { color: var(--muted); font-size: 14px; }
+  button, select, input { font: inherit; color: inherit; }
+  button { border: 1px solid var(--line); background: var(--card); padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button:disabled { opacity: .6; cursor: default; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .toolbar input, .toolbar select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); min-width: 0; }
+  .toolbar input { flex: 1 1 200px; }
+  .counts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .count { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+  .count b { font-size: 18px; margin-left: 4px; }
+  .list { display: grid; gap: 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; }
+  .card:hover { border-color: var(--accent); }
+  .card .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .card .auditee { font-weight: 600; }
+  .card .title { margin: 2px 0 6px; }
+  .card .meta { color: var(--muted); font-size: 14px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .chip { font-size: 13px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+  .st-ASSIGNED { background: var(--chip-assigned); } .st-IN_PROGRESS { background: var(--chip-progress); }
+  .st-WAITING { background: var(--chip-waiting); } .st-DONE { background: var(--chip-done); }
+  .st-CANCELLED { background: var(--chip-cancel); color: var(--muted); }
+  .card.cancelled .auditee, .card.cancelled .title { color: var(--muted); text-decoration: line-through; }
+  .badge { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin-left: 6px; color: var(--muted); font-weight: normal; }
+  .empty { text-align: center; color: var(--muted); padding: 32px 0; }
+  dialog { border: 1px solid var(--line); border-radius: 12px; padding: 0; width: min(560px, calc(100vw - 32px)); background: var(--card); color: var(--text); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  form { padding: 16px; display: grid; gap: 10px; }
+  form h2 { margin: 0 0 4px; font-size: 18px; }
+  label { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+  label.check { display: flex; align-items: center; gap: 8px; color: var(--text); }
+  form input[type=text], form input[type=date], form select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hint { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+  .err { color: var(--danger); font-size: 14px; min-height: 1em; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .notice { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 14px; }
+  code.uid { display: block; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; word-break: break-all; user-select: all; }
+  .hidden { display: none !important; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- กำลังโหลด / ข้อความ -->
+  <section id="screen-msg" class="center">
+    <h1>ทะเบียนคุมงาน</h1>
+    <p id="msg-text" class="muted">กำลังตรวจสอบการเข้าสู่ระบบ…</p>
+    <button id="btn-relogin" class="primary hidden">เข้าสู่ระบบด้วย LINE</button>
+  </section>
+
+  <!-- ไม่มีสิทธิ์ -->
+  <section id="screen-denied" class="center hidden">
+    <h1>ยังไม่มีสิทธิ์ใช้งาน</h1>
+    <p class="muted">บัญชี LINE นี้ยังไม่อยู่ในรายชื่อผู้ใช้ กรุณาส่งรหัสด้านล่างให้ผู้ดูแลระบบ</p>
+    <code id="denied-uid" class="uid"></code>
+    <button id="btn-copy-uid">คัดลอกรหัส</button>
+  </section>
+
+  <!-- แอป -->
+  <section id="screen-app" class="hidden">
+    <header>
+      <div>
+        <h1>ทะเบียนคุมงาน</h1>
+        <div class="muted" id="me-line"></div>
+      </div>
+      <div style="display:flex; gap:8px">
+        <button id="btn-refresh" title="โหลดข้อมูลใหม่">โหลดใหม่</button>
+        <button id="btn-logout">ออกจากระบบ</button>
+      </div>
+    </header>
+
+    <div id="idle-warn" class="notice hidden">จะออกจากระบบอัตโนมัติในอีก 1 นาที หากไม่มีการใช้งาน</div>
+
+    <div class="counts" id="counts"></div>
+
+    <div class="toolbar">
+      <input id="f-search" type="search" placeholder="ค้นหาชื่อหน่วย / ชื่อเรื่อง / รหัส">
+      <select id="f-status"></select>
+      <select id="f-owner"></select>
+      <button id="btn-add" class="primary">+ เพิ่มงาน</button>
+    </div>
+
+    <div id="list" class="list"></div>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <form id="task-form" novalidate>
+    <h2 id="dlg-title">เพิ่มงาน</h2>
+    <label>ประเภทงาน <select id="t-category" required></select></label>
+    <label class="check"><input type="checkbox" id="t-masked"> ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง</label>
+    <div id="masked-hint" class="hint hidden">
+      ใช้กับงานที่ยังไม่ออกหนังสือแจ้งเข้าตรวจ กรอกเป็นรหัสเท่านั้น (ตัวอักษรอังกฤษ ตัวเลข และ - / _ . ไม่เกิน 30 ตัว) เช่น K-69-001
+      เมื่อออกหนังสือแจ้งเข้าตรวจแล้ว ให้เอาเครื่องหมายออกแล้วแก้เป็นชื่อจริง
+    </div>
+    <label><span id="lbl-auditee">หน่วยรับตรวจ</span> <input type="text" id="t-auditee" maxlength="200" autocomplete="off"></label>
+    <label><span id="lbl-title">ชื่อเรื่อง</span> <input type="text" id="t-title" maxlength="200" autocomplete="off"></label>
+    <div class="row2">
+      <label>ผู้รับผิดชอบ <select id="t-owner"></select></label>
+      <label>สถานะ <select id="t-status"></select></label>
+    </div>
+    <div class="row2">
+      <label>วันที่ได้รับมอบหมาย <input type="date" id="t-assigned"></label>
+      <label>กำหนดส่ง <input type="date" id="t-due"></label>
+    </div>
+    <div id="t-info" class="muted"></div>
+    <div id="t-err" class="err"></div>
+    <div class="actions">
+      <button type="button" id="btn-cancel">ยกเลิก</button>
+      <button type="submit" class="primary" id="btn-save">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
+<script>
+'use strict';
+/* ====== ค่าตั้งค่า (ใส่ครบแล้ว) ====== */
+const LIFF_ID = '2011958112-q9ZheCNw';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwc5pjrOsGc-EegnSsGhnak0NKX8GyOeXvaCoyXIZC-x3j68db3OGS5WvqEI1vcltrc/exec';
+/* ================================= */
+
+const FORBIDDEN = ['ร้องเรียน'];
+const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9\-\/_.]{0,29}$/;
+const ERR = {
+  NETWORK: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง',
+  BAD_REQUEST: 'คำขอไม่ถูกต้อง',
+  NOT_SETUP: 'ระบบยังตั้งค่าไม่ครบ แจ้งผู้ดูแลระบบ',
+  SHEET_HEADER_MISMATCH: 'โครงสร้างแผ่นงานไม่ตรง แจ้งผู้ดูแลระบบ',
+  LOGIN_FAILED: 'ยืนยันตัวตนกับ LINE ไม่สำเร็จ',
+  TOKEN_STALE: 'การยืนยันตัวตนหมดอายุ',
+  SESSION_EXPIRED: 'หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่',
+  BUSY: 'ระบบกำลังบันทึกงานของคนอื่น ลองใหม่อีกครั้ง',
+  NOT_FOUND: 'ไม่พบงานนี้ (อาจถูกเปลี่ยนแปลง)',
+  CONFLICT: 'มีคนแก้ไขงานนี้ก่อนหน้าคุณ ระบบโหลดข้อมูลล่าสุดแล้ว กรุณาตรวจสอบและแก้ไขอีกครั้ง',
+  INVALID: 'ข้อมูลไม่ถูกต้อง',
+  FORBIDDEN_WORD: 'มีคำต้องห้ามในข้อความ กรุณาใช้คำอื่น',
+  MASKED_NEEDS_CODE: 'งานที่ใช้รหัสแทนชื่อ ต้องกรอกเป็นรหัสเท่านั้น',
+  DUE_BEFORE_ASSIGNED: 'กำหนดส่งต้องไม่ก่อนวันที่ได้รับมอบหมาย',
+  SERVER_ERROR: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์'
+};
+const FIELD_TH = { category: 'ประเภทงาน', auditee: 'หน่วยรับตรวจ', title: 'ชื่อเรื่อง', ownerKey: 'ผู้รับผิดชอบ',
+                   status: 'สถานะ', assignedDate: 'วันที่ได้รับมอบหมาย', dueDate: 'กำหนดส่ง' };
+const TH_MONTH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+const S = { token: null, me: null, statuses: [], closed: ['DONE', 'CANCELLED'], categories: [], members: [], tasks: [], today: '',
+            idleMin: 15, lastActive: Date.now(), lastPing: Date.now(), editing: null };
+const $ = id => document.getElementById(id);
+
+/* ---------- storage (sessionStorage: หายเมื่อปิดแท็บ) ---------- */
+const ss = {
+  get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+};
+const cleanUrl = () => location.origin + location.pathname;
+const errText = e => {
+  const base = ERR[e && e.code] || ERR.SERVER_ERROR;
+  return (e && e.detail && FIELD_TH[e.detail]) ? base + ' (' + FIELD_TH[e.detail] + ')' : base;
+};
+
+/* ---------- API ---------- */
+async function api(action, extra) {
+  const body = Object.assign({ action: action }, extra || {});
+  if (action !== 'login') body.token = S.token;
+  let res;
+  try {
+    res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                 body: JSON.stringify(body), credentials: 'omit', cache: 'no-store' });
+  } catch (e) { throw { code: 'NETWORK' }; }
+  if (!res.ok) throw { code: 'NETWORK' };
+  let j;
+  try { j = await res.json(); } catch (e) { throw { code: 'NETWORK' }; }
+  if (!j.ok) throw { code: j.error, detail: j.detail };
+  S.lastPing = Date.now();
+  return j.data;
+}
+
+/** เรียก API จากในแอป: ถ้า session หมดอายุให้กลับไปหน้าเข้าสู่ระบบ */
+async function call(action, extra) {
+  try { return await api(action, extra); }
+  catch (e) {
+    if (e.code === 'SESSION_EXPIRED') endSession(ERR.SESSION_EXPIRED, false);
+    throw e;
+  }
+}
+
+/* ---------- หน้าจอ ---------- */
+function show(id) {
+  ['screen-msg', 'screen-denied', 'screen-app'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+}
+function showMsg(text, withLoginBtn) {
+  $('msg-text').textContent = text;
+  $('btn-relogin').classList.toggle('hidden', !withLoginBtn);
+  show('screen-msg');
+}
+
+/* ---------- เข้าสู่ระบบ ---------- */
+async function start() {
+  showMsg('กำลังตรวจสอบการเข้าสู่ระบบ…', false);
+  if (LIFF_ID.indexOf('ใส่_') === 0 || API_URL.indexOf('ใส่_') === 0) {
+    showMsg('ยังไม่ได้ใส่ LIFF_ID และ API_URL ในไฟล์ index.html', false); return;
+  }
+  try { await liff.init({ liffId: LIFF_ID }); }
+  catch (e) { showMsg('เปิดระบบ LINE Login ไม่ได้ ตรวจสอบ LIFF_ID และ Endpoint URL', true); return; }
+
+  // มี session อยู่แล้วในแท็บนี้
+  S.token = ss.get('kn_s');
+  if (S.token) {
+    try { await loadApp(); return; } catch (e) { S.token = null; ss.del('kn_s'); }
+  }
+
+  if (!liff.isLoggedIn()) { liff.login({ redirectUri: cleanUrl() }); return; }
+  const idToken = liff.getIDToken();
+  if (!idToken) { showMsg('ไม่ได้รับข้อมูลยืนยันตัวตน ตรวจสอบว่า LIFF เปิดสิทธิ์ openid', true); return; }
+
+  try {
+    const r = await api('login', { idToken: idToken });
+    ss.del('kn_retry');
+    S.token = r.sessionToken; ss.set('kn_s', S.token);
+    history.replaceState(null, '', cleanUrl());
+    await loadApp();
+  } catch (e) {
+    if (e.code === 'TOKEN_STALE' && !ss.get('kn_retry')) {
+      ss.set('kn_retry', '1');           // ขอ token ใหม่จาก LINE หนึ่งครั้ง
+      liff.logout();
+      liff.login({ redirectUri: cleanUrl() });
+      return;
+    }
+    ss.del('kn_retry');
+    if (e.code === 'NOT_ALLOWED') {
+      try { liff.logout(); } catch (x) {}
+      $('denied-uid').textContent = (e.detail && e.detail.userId) || '';
+      show('screen-denied');
+      return;
+    }
+    showMsg(errText(e), true);
+  }
+}
+
+async function loadApp() {
+  const d = await call('bootstrap');
+  Object.assign(S, { me: d.me, statuses: d.statuses, closed: d.closedStatuses || S.closed, categories: d.categories, members: d.members,
+                     tasks: d.tasks, today: d.today, idleMin: d.idleMinutes });
+  $('me-line').textContent = 'ผู้ใช้: ' + d.me.displayName;
+  fillSelect($('f-status'), [{ v: 'OPEN', t: 'งานค้างทั้งหมด' }, { v: '', t: 'ทุกสถานะ' }]
+    .concat(S.statuses.map(s => ({ v: s.code, t: s.label }))));
+  fillSelect($('f-owner'), [{ v: '', t: 'ทุกคน' }, { v: S.me.memberKey, t: 'งานของฉัน' }]
+    .concat(S.members.map(m => ({ v: m.memberKey, t: m.displayName }))));
+  fillSelect($('t-category'), S.categories.map(c => ({ v: c.code, t: c.label })));
+  fillSelect($('t-status'), S.statuses.map(s => ({ v: s.code, t: s.label })));
+  fillSelect($('t-owner'), S.members.map(m => ({ v: m.memberKey, t: m.displayName })));
+  S.lastActive = Date.now();
+  show('screen-app');
+  render();
+}
+
+async function endSession(text, callServer) {
+  if (callServer && S.token) { try { await api('logout'); } catch (e) {} }
+  S.token = null; ss.del('kn_s');
+  S.tasks = []; $('list').textContent = ''; $('counts').textContent = '';
+  if ($('dlg').open) $('dlg').close();
+  try { liff.logout(); } catch (e) {}
+  showMsg(text, true);
+}
+
+/* ---------- แสดงรายการ ---------- */
+function fillSelect(sel, items) {
+  sel.textContent = '';
+  items.forEach(i => { const o = document.createElement('option'); o.value = i.v; o.textContent = i.t; sel.appendChild(o); });
+}
+const isClosed = t => S.closed.indexOf(t.status) !== -1;
+const statusLabel = c => (S.statuses.find(s => s.code === c) || {}).label || c;
+const catLabel = c => (S.categories.find(x => x.code === c) || {}).label || c;
+const memberName = k => (S.members.find(m => m.memberKey === k) || {}).displayName || k;
+function thDate(s) {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return '-';
+  return (+s.slice(8, 10)) + ' ' + TH_MONTH[+s.slice(5, 7) - 1] + ' ' + String(+s.slice(0, 4) + 543).slice(-2);
+}
+
+function render() {
+  const q = $('f-search').value.trim().toLowerCase();
+  const fs = $('f-status').value, fo = $('f-owner').value;
+
+  const counts = $('counts'); counts.textContent = '';
+  S.statuses.forEach(s => {
+    const n = S.tasks.filter(t => t.status === s.code).length;
+    const el = document.createElement('div'); el.className = 'count';
+    el.textContent = s.label; const b = document.createElement('b'); b.textContent = n; el.appendChild(b);
+    counts.appendChild(el);
+  });
+
+  const rows = S.tasks.filter(t =>
+      (fs === '' || (fs === 'OPEN' ? !isClosed(t) : t.status === fs)) &&
+      (fo === '' || t.ownerKey === fo) &&
+      (!q || (t.auditee + ' ' + t.title + ' ' + t.id).toLowerCase().includes(q)))
+    .sort((a, b) => isClosed(a) - isClosed(b) || a.dueDate.localeCompare(b.dueDate));
+
+  const list = $('list'); list.textContent = '';
+  if (!rows.length) {
+    const e = document.createElement('div'); e.className = 'empty'; e.textContent = 'ไม่มีงานตามเงื่อนไขที่เลือก';
+    list.appendChild(e); return;
+  }
+  rows.forEach(t => {
+    const card = document.createElement('button'); card.type = 'button'; card.className = 'card' + (t.status === 'CANCELLED' ? ' cancelled' : '');
+    const top = document.createElement('div'); top.className = 'top';
+    const au = document.createElement('div'); au.className = 'auditee'; au.textContent = t.auditee;
+    if (t.masked) { const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = 'ใช้รหัส'; au.appendChild(bd); }
+    const chip = document.createElement('span'); chip.className = 'chip st-' + t.status; chip.textContent = statusLabel(t.status);
+    top.append(au, chip);
+    const ti = document.createElement('div'); ti.className = 'title'; ti.textContent = t.title;
+    const meta = document.createElement('div'); meta.className = 'meta';
+    [catLabel(t.category), 'ผู้รับผิดชอบ: ' + memberName(t.ownerKey),
+     'กำหนดส่ง: ' + thDate(t.dueDate)].concat(t.doneDate ? ['เสร็จ: ' + thDate(t.doneDate)] : [])
+      .forEach(x => { const s = document.createElement('span'); s.textContent = x; meta.appendChild(s); });
+    card.append(top, ti, meta);
+    card.addEventListener('click', () => openForm(t));
+    list.appendChild(card);
+  });
+}
+
+async function refresh() {
+  try { const d = await call('listTasks'); S.tasks = d.tasks; S.today = d.today; render(); }
+  catch (e) { if (e.code !== 'SESSION_EXPIRED') alert(errText(e)); }
+}
+
+/* ---------- ฟอร์มเพิ่ม/แก้ไข ---------- */
+function updateMaskedUi() {
+  const m = $('t-masked').checked;
+  $('masked-hint').classList.toggle('hidden', !m);
+  $('lbl-auditee').textContent = m ? 'รหัสหน่วยรับตรวจ' : 'หน่วยรับตรวจ';
+  $('lbl-title').textContent = m ? 'รหัสเรื่อง' : 'ชื่อเรื่อง';
+}
+
+function openForm(task) {
+  S.editing = task || null;
+  $('dlg-title').textContent = task ? 'แก้ไขงาน ' + task.id : 'เพิ่มงาน';
+  $('t-category').value = task ? task.category : S.categories[0].code;
+  $('t-masked').checked = task ? task.masked : false;
+  $('t-auditee').value = task ? task.auditee : '';
+  $('t-title').value = task ? task.title : '';
+  $('t-owner').value = task ? task.ownerKey : S.me.memberKey;
+  $('t-status').value = task ? task.status : 'ASSIGNED';
+  $('t-assigned').value = task ? task.assignedDate : S.today;
+  $('t-due').value = task ? task.dueDate : '';
+  $('t-info').textContent = task
+    ? 'ปีงบประมาณ ' + (task.fiscalYear || '-') + (task.doneDate ? ' · เสร็จเมื่อ ' + thDate(task.doneDate) : '') +
+      ' · แก้ไขล่าสุดโดย ' + memberName(task.updatedBy)
+    : '';
+  $('t-err').textContent = '';
+  updateMaskedUi();
+  $('dlg').showModal();
+}
+
+function readForm() {
+  return {
+    category: $('t-category').value,
+    masked: $('t-masked').checked,
+    auditee: $('t-auditee').value.trim(),
+    title: $('t-title').value.trim(),
+    ownerKey: $('t-owner').value,
+    status: $('t-status').value,
+    assignedDate: $('t-assigned').value,
+    dueDate: $('t-due').value
+  };
+}
+
+function checkForm(f) {
+  if (!f.auditee || !f.title) return 'กรุณากรอกหน่วยรับตรวจและชื่อเรื่อง';
+  if (!f.dueDate) return 'กรุณาเลือกกำหนดส่ง';
+  if (f.assignedDate && f.dueDate < f.assignedDate) return ERR.DUE_BEFORE_ASSIGNED;
+  if (FORBIDDEN.some(w => (f.auditee + f.title).includes(w))) return ERR.FORBIDDEN_WORD;
+  if (f.masked && (!CODE_RE.test(f.auditee) || !CODE_RE.test(f.title))) return ERR.MASKED_NEEDS_CODE;
+  return '';
+}
+
+async function saveForm(ev) {
+  ev.preventDefault();
+  const f = readForm();
+  const msg = checkForm(f);
+  if (msg) { $('t-err').textContent = msg; return; }
+  if (f.status === 'CANCELLED' && (!S.editing || S.editing.status !== 'CANCELLED') &&
+      !confirm('ยืนยันเปลี่ยนสถานะเป็น "ยกเลิก"?\nงานนี้จะไม่นับเป็นงานค้างและไม่มีการแจ้งเตือน (เปลี่ยนกลับได้ภายหลัง)')) return;
+  $('btn-save').disabled = true; $('t-err').textContent = 'กำลังบันทึก…';
+  try {
+    if (!S.editing) {
+      const r = await call('createTask', { task: f });
+      S.tasks.push(r.task);
+    } else {
+      const changes = {};
+      Object.keys(f).forEach(k => { if (String(f[k]) !== String(S.editing[k])) changes[k] = f[k]; });
+      if (!Object.keys(changes).length) { $('dlg').close(); return; }
+      const r = await call('updateTask', { id: S.editing.id, version: S.editing.version, changes: changes });
+      S.tasks = S.tasks.map(t => t.id === r.task.id ? r.task : t);
+    }
+    $('dlg').close();
+    render();
+  } catch (e) {
+    if (e.code === 'SESSION_EXPIRED') return;
+    $('t-err').textContent = errText(e);
+    if (e.code === 'CONFLICT' || e.code === 'NOT_FOUND') {
+      await refresh();
+      const fresh = S.editing && S.tasks.find(t => t.id === S.editing.id);
+      if (fresh) { S.editing = fresh; }
+    }
+  } finally {
+    $('btn-save').disabled = false;
+  }
+}
+
+/* ---------- ออกจากระบบอัตโนมัติเมื่อไม่ใช้งาน ---------- */
+['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev =>
+  document.addEventListener(ev, () => { S.lastActive = Date.now(); $('idle-warn').classList.add('hidden'); }, { passive: true }));
+
+function idleCheck() {
+  if (!S.token) return;
+  const idleMs = Date.now() - S.lastActive, limit = S.idleMin * 60000;
+  if (idleMs >= limit) { endSession('ออกจากระบบอัตโนมัติ เนื่องจากไม่มีการใช้งาน ' + S.idleMin + ' นาที', true); return; }
+  $('idle-warn').classList.toggle('hidden', idleMs < limit - 60000);
+  // ยังใช้งานอยู่แต่ไม่ได้เรียกเซิร์ฟเวอร์นาน → ต่ออายุ session ฝั่งเซิร์ฟเวอร์
+  if (S.lastActive > S.lastPing && Date.now() - S.lastPing > 5 * 60000) call('ping').catch(() => {});
+}
+setInterval(idleCheck, 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) idleCheck(); });
+
+/* ---------- ปุ่มต่าง ๆ ---------- */
+$('btn-add').addEventListener('click', () => openForm(null));
+$('btn-refresh').addEventListener('click', refresh);
+$('btn-logout').addEventListener('click', () => endSession('ออกจากระบบแล้ว', true));
+$('btn-cancel').addEventListener('click', () => $('dlg').close());
+$('task-form').addEventListener('submit', saveForm);
+$('t-masked').addEventListener('change', updateMaskedUi);
+['f-search', 'f-status', 'f-owner'].forEach(id => $(id).addEventListener('input', render));
+$('btn-relogin').addEventListener('click', () => location.replace(cleanUrl()));
+$('btn-copy-uid').addEventListener('click', () => {
+  navigator.clipboard.writeText($('denied-uid').textContent).then(() => { $('btn-copy-uid').textContent = 'คัดลอกแล้ว'; });
+});
+
+start();
+</script>
+</body>
+</html>
