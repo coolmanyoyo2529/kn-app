@@ -74,7 +74,7 @@
   .help td:first-child { white-space: nowrap; }
   .help code { background: var(--bg); padding: 0 4px; border-radius: 4px; }
   .hidden { display: none !important; }
-  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } header button { padding: 6px 10px; font-size: 14px; } }
 </style>
 </head>
 <body>
@@ -103,6 +103,7 @@
         <div class="muted" id="me-line"></div>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button id="btn-mask" title="เปิดเครื่องมือปิดข้อมูลระบุตัวตนในแท็บใหม่">เครื่องมือปิดชื่อ</button>
         <button id="btn-help" title="คู่มือการใช้งาน">คู่มือ</button>
         <button id="btn-refresh" title="โหลดข้อมูลใหม่">โหลดใหม่</button>
         <button id="btn-logout">ออกจากระบบ</button>
@@ -208,7 +209,16 @@
       <li>รายการเรียงงานค้างก่อน และเรียงตามกำหนดส่งที่ใกล้ที่สุด งานที่ไม่ระบุกำหนดส่งอยู่ท้าย</li>
     </ul>
 
-    <h3>7. ข้อห้าม</h3>
+    <h3>7. เครื่องมือปิดชื่อ (ไฟล์ Excel/CSV)</h3>
+    <ul>
+      <li>กดปุ่ม <b>เครื่องมือปิดชื่อ</b> ที่มุมขวาบน ระบบเปิดเครื่องมือในแท็บใหม่ ถ้าเปิดจากแอป LINE จะเปิดในเบราว์เซอร์ของเครื่องแทน</li>
+      <li>ใช้แทนชื่อบุคคล ผู้ขาย เลขบัตร เลขบัญชี ในไฟล์ .xlsx .xls .csv ด้วยรหัส แล้วเปิดรหัสกลับเมื่อได้ผลลัพธ์</li>
+      <li>ไฟล์ประมวลผลในเครื่องของคุณเท่านั้น หน้านี้ถูกล็อกไม่ให้ส่งข้อมูลออกอินเทอร์เน็ต และไม่เกี่ยวกับข้อมูลในทะเบียนคุมงาน</li>
+      <li>ได้ 2 ไฟล์: <code>_ปิดชื่อ</code> และ <code>_กุญแจ</code> ไฟล์กุญแจเป็นความลับระดับเดียวกับต้นฉบับ เก็บในเครื่องเท่านั้น</li>
+      <li>แนะนำใช้บนคอมพิวเตอร์ ดูวิธีใช้ละเอียดได้ที่แท็บ "วิธีใช้" ในเครื่องมือ</li>
+    </ul>
+
+    <h3>8. ข้อห้าม</h3>
     <ul>
       <li>ช่วงทดลองใช้ข้อมูลสมมุติเท่านั้น จนกว่าได้รับอนุญาตให้ใช้ข้อมูลจริง</li>
       <li>ห้ามบันทึกชื่อหรือข้อมูลที่ระบุตัวบุคคลผู้แจ้งเรื่อง</li>
@@ -537,6 +547,11 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) idle
 /* ---------- ปุ่มต่าง ๆ ---------- */
 $('btn-add').addEventListener('click', () => openForm(null));
 $('btn-refresh').addEventListener('click', refresh);
+$('btn-mask').addEventListener('click', () => {
+  const url = new URL('mask.html', location.href.split('#')[0].split('?')[0]).href;
+  try { if (window.liff && liff.isInClient()) { liff.openWindow({ url: url, external: true }); return; } } catch (e) {}
+  window.open(url, '_blank', 'noopener');
+});
 $('btn-help').addEventListener('click', () => { $('dlg-help').showModal(); $('dlg-help').querySelector('.help').scrollTop = 0; });
 $('btn-help-close').addEventListener('click', () => $('dlg-help').close());
 $('btn-logout').addEventListener('click', () => endSession('ออกจากระบบแล้ว', true));
