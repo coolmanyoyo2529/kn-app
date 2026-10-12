@@ -11,12 +11,17 @@
     --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #5d6677; --line: #dde1e8;
     --accent: #1f5fbf; --accent-text: #ffffff; --danger: #b42318; --ok: #1a7f37;
     --chip-assigned: #e8eefb; --chip-progress: #fff4d6; --chip-waiting: #f3e8fd; --chip-waiting2: #fde4ef; --chip-done: #e3f4e8; --chip-cancel: #eceef1;
+    --over: #b42318; --over-bg: #fde8e6; --today: #9a5b00; --today-bg: #ffe9b8; --near: #8a6d00; --near-bg: #fff6cc; --none-bg: #eef0f4;
+    --bar: #1f5fbf; --bar-bg: #e3e8f2;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #12151b; --card: #1b2029; --text: #e7eaf0; --muted: #9aa3b2; --line: #2c3340;
       --accent: #5b8fe0; --accent-text: #0d1117; --danger: #ff7b72; --ok: #56d364;
       --chip-assigned: #1f2d47; --chip-progress: #3d3317; --chip-waiting: #33244a; --chip-waiting2: #4a2436; --chip-done: #18341f; --chip-cancel: #2a2f38;
+      --over: #ff8a80; --over-bg: #4a1d1a; --today: #ffc561; --today-bg: #4a3510; --near: #f0d264; --near-bg: #3a3214; --none-bg: #262c37;
+      --bar: #5b8fe0; --bar-bg: #2a3240;
+      color-scheme: dark;
     }
   }
   * { box-sizing: border-box; }
@@ -27,54 +32,112 @@
   header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   h1 { font-size: 20px; margin: 0; }
   .muted { color: var(--muted); font-size: 14px; }
-  button, select, input { font: inherit; color: inherit; }
+  button, select, input, textarea { font: inherit; color: inherit; }
   button { border: 1px solid var(--line); background: var(--card); padding: 8px 14px; border-radius: 8px; cursor: pointer; }
   button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button.small { padding: 4px 10px; font-size: 14px; }
+  button.link { border: 0; background: none; color: var(--accent); padding: 0 4px; text-decoration: underline; }
   button:disabled { opacity: .6; cursor: default; }
+  button:focus-visible, .card:focus-visible, .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .head-btns { display: flex; gap: 8px; flex-wrap: wrap; }
   .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .toolbar input, .toolbar select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); min-width: 0; }
   .toolbar input { flex: 1 1 200px; }
   .counts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .count { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
   .count b { font-size: 18px; margin-left: 4px; }
+
+  /* สรุปเช้า/เย็น */
+  .summary { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; display: grid; gap: 10px; }
+  .sum-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .tabs button { border: 0; border-radius: 0; padding: 6px 14px; }
+  .tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+  .tile { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; text-align: left; background: var(--bg); display: grid; gap: 2px; }
+  .tile b { font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .tile span { font-size: 13px; color: var(--muted); }
+  .tile.over { background: var(--over-bg); } .tile.over b { color: var(--over); }
+  .tile.today { background: var(--today-bg); } .tile.today b { color: var(--today); }
+  .tile.near { background: var(--near-bg); } .tile.near b { color: var(--near); }
+  .tile[disabled] { cursor: default; }
+
   .list { display: grid; gap: 8px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; }
+  .card { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; }
   .card:hover { border-color: var(--accent); }
+  .card.d-over { border-left-color: var(--over); } .card.d-today { border-left-color: var(--today); } .card.d-near { border-left-color: var(--near); }
   .card .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-  .card .auditee { font-weight: 600; }
-  .card .title { margin: 2px 0 6px; }
-  .card .meta { color: var(--muted); font-size: 14px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .card .auditee { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+  .card .title { margin: 2px 0 6px; overflow-wrap: anywhere; }
+  .card .meta { color: var(--muted); font-size: 14px; display: flex; gap: 6px 12px; flex-wrap: wrap; align-items: center; }
   .chip { font-size: 13px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
   .st-ASSIGNED { background: var(--chip-assigned); } .st-IN_PROGRESS { background: var(--chip-progress); }
   .st-WAITING { background: var(--chip-waiting); } .st-WAITING2 { background: var(--chip-waiting2); } .st-DONE { background: var(--chip-done); }
   .st-CANCELLED { background: var(--chip-cancel); color: var(--muted); }
+  .due { font-size: 13px; padding: 1px 8px; border-radius: 6px; white-space: nowrap; font-weight: 600; }
+  .due.over { background: var(--over-bg); color: var(--over); }
+  .due.today { background: var(--today-bg); color: var(--today); }
+  .due.near { background: var(--near-bg); color: var(--near); }
+  .due.none { background: var(--none-bg); color: var(--muted); font-weight: normal; }
+  .due.ok { background: transparent; color: var(--muted); font-weight: normal; padding: 0; }
   .card.cancelled .auditee, .card.cancelled .title { color: var(--muted); text-decoration: line-through; }
   .badge { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin-left: 6px; color: var(--muted); font-weight: normal; }
   .empty { text-align: center; color: var(--muted); padding: 32px 0; }
+
   dialog { border: 1px solid var(--line); border-radius: 12px; padding: 0; width: min(560px, calc(100vw - 32px)); background: var(--card); color: var(--text); }
+  dialog.wide { width: min(760px, calc(100vw - 32px)); }
   dialog::backdrop { background: rgba(0,0,0,.45); }
-  form { padding: 16px; display: grid; gap: 10px; }
-  form h2 { margin: 0 0 4px; font-size: 18px; }
+  form, .pane { padding: 16px; display: grid; gap: 10px; }
+  .pane { max-height: 85vh; overflow-y: auto; }
+  form h2, .pane h2 { margin: 0 0 4px; font-size: 18px; }
+  .pane h3 { margin: 6px 0 0; font-size: 16px; }
+  .pane-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
   label { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
   label.check { display: flex; align-items: center; gap: 8px; color: var(--text); }
-  form input[type=text], form input[type=date], form select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; }
+  input[type=text], input[type=date], input[type=number], select.f, form select, textarea { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; min-width: 0; }
+  textarea { font-size: 14px; resize: vertical; }
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; display: grid; gap: 10px; margin: 0; min-width: 0; }
+  legend { font-size: 14px; color: var(--muted); padding: 0 6px; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: end; }
   .hint { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+  .preview { font-size: 14px; background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+  .preview b { font-size: 15px; }
+  .warn { font-size: 14px; background: var(--today-bg); color: var(--text); border-radius: 8px; padding: 10px 12px; }
+  .warn ul { margin: 4px 0 0; padding-left: 20px; }
   .err { color: var(--danger); font-size: 14px; min-height: 1em; }
-  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .okmsg { color: var(--ok); font-size: 14px; min-height: 1em; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
   .notice { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 14px; }
   code.uid { display: block; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; word-break: break-all; user-select: all; }
-  .help { padding: 16px; display: grid; gap: 8px; max-height: 85vh; overflow-y: auto; }
-  .help-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; position: sticky; top: -16px; background: var(--card); padding-top: 4px; }
-  .help h2 { margin: 0; font-size: 18px; }
-  .help h3 { margin: 10px 0 0; font-size: 16px; }
-  .help ul, .help ol { margin: 0; padding-left: 22px; display: grid; gap: 4px; }
-  .help table { border-collapse: collapse; width: 100%; }
+
+  /* ตาราง */
+  .tbl-wrap { overflow-x: auto; }
+  table.tbl { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .tbl th, .tbl td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tbl th:first-child, .tbl td:first-child { text-align: left; white-space: normal; }
+  .tbl th { color: var(--muted); font-weight: 600; }
+  .tbl tfoot td { font-weight: 700; border-bottom: 0; }
+  .tbl input[type=number] { width: 72px; padding: 4px 6px; text-align: right; }
+  .bar { height: 8px; background: var(--bar-bg); border-radius: 4px; overflow: hidden; min-width: 60px; }
+  .bar > i { display: block; height: 100%; background: var(--bar); }
+  .num-over { color: var(--over); font-weight: 600; }
+  .hol-row td { vertical-align: top; }
+  .hol-row.struck td:nth-child(2) { text-decoration: line-through; color: var(--muted); }
+  .tag { font-size: 12px; border-radius: 6px; padding: 0 6px; border: 1px solid var(--line); color: var(--muted); }
+
   .help td { padding: 4px 6px; vertical-align: top; border-bottom: 1px solid var(--line); font-size: 14px; }
   .help td:first-child { white-space: nowrap; }
+  .help ul, .help ol { margin: 0; padding-left: 22px; display: grid; gap: 4px; }
+  .help table { border-collapse: collapse; width: 100%; }
   .help code { background: var(--bg); padding: 0 4px; border-radius: 4px; }
+  .sticky-head { position: sticky; top: -16px; background: var(--card); padding-top: 4px; z-index: 1; }
   .hidden { display: none !important; }
-  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } header button { padding: 6px 10px; font-size: 14px; } }
+  @media (max-width: 520px) {
+    .row2, .row3 { grid-template-columns: 1fr; }
+    header button { padding: 6px 10px; font-size: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
@@ -102,7 +165,9 @@
         <h1>ทะเบียนคุมงาน</h1>
         <div class="muted" id="me-line"></div>
       </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <div class="head-btns">
+        <button id="btn-dash" title="แผนปีงบประมาณและแดชบอร์ด">แดชบอร์ด</button>
+        <button id="btn-hol" title="วันหยุดที่ใช้นับวันทำการ">วันหยุด</button>
         <button id="btn-mask" title="เปิดเครื่องมือปิดข้อมูลระบุตัวตนในแท็บใหม่">เครื่องมือปิดชื่อ</button>
         <button id="btn-help" title="คู่มือการใช้งาน">คู่มือ</button>
         <button id="btn-refresh" title="โหลดข้อมูลใหม่">โหลดใหม่</button>
@@ -112,12 +177,28 @@
 
     <div id="idle-warn" class="notice hidden">จะออกจากระบบอัตโนมัติในอีก 1 นาที หากไม่มีการใช้งาน</div>
 
+    <section class="summary" aria-label="สรุปงาน">
+      <div class="sum-head">
+        <div>
+          <b id="sum-title">สรุปงาน</b>
+          <div class="muted" id="sum-sub"></div>
+        </div>
+        <div class="tabs" role="group" aria-label="เลือกสรุป">
+          <button type="button" id="tab-am" aria-pressed="true">เช้า</button>
+          <button type="button" id="tab-pm" aria-pressed="false">เย็น</button>
+        </div>
+      </div>
+      <div class="tiles" id="sum-tiles"></div>
+    </section>
+
+    <div id="ids-notice" class="notice hidden"><span id="ids-text"></span> <button type="button" class="link" id="btn-clear-ids">แสดงทั้งหมด</button></div>
+
     <div class="counts" id="counts"></div>
 
     <div class="toolbar">
       <input id="f-search" type="search" placeholder="ค้นหาชื่อหน่วย / ชื่อเรื่อง / รหัส">
-      <select id="f-status"></select>
-      <select id="f-owner"></select>
+      <select id="f-status" aria-label="กรองสถานะ"></select>
+      <select id="f-owner" aria-label="กรองผู้รับผิดชอบ"></select>
       <button id="btn-add" class="primary">+ เพิ่มงาน</button>
     </div>
 
@@ -125,6 +206,7 @@
   </section>
 </div>
 
+<!-- ฟอร์มงาน -->
 <dialog id="dlg">
   <form id="task-form" novalidate>
     <h2 id="dlg-title">เพิ่มงาน</h2>
@@ -140,10 +222,22 @@
       <label>ผู้รับผิดชอบ <select id="t-owner"></select></label>
       <label>สถานะ <select id="t-status"></select></label>
     </div>
-    <div class="row2">
-      <label>วันที่ได้รับมอบหมาย <input type="date" id="t-assigned"></label>
-      <label>กำหนดส่ง (ไม่บังคับ) <input type="date" id="t-due"></label>
-    </div>
+    <label>วันที่ได้รับมอบหมาย / วันที่รับเรื่อง <input type="date" id="t-assigned"></label>
+
+    <fieldset>
+      <legend>กำหนดส่ง</legend>
+      <div class="row2">
+        <label>วิธีกำหนด <select id="t-duemode"></select></label>
+        <label>ที่มา (ไม่บังคับ) <select id="t-basis"></select></label>
+      </div>
+      <div class="row2" id="due-row">
+        <label id="wrap-days">จำนวนวัน <input type="number" id="t-days" min="1" max="365" step="1" inputmode="numeric"></label>
+        <label id="wrap-due">วันที่กำหนดส่ง <input type="date" id="t-due"></label>
+        <label id="wrap-count">นับแบบ <select id="t-countmode"></select></label>
+      </div>
+      <div id="due-preview" class="preview hidden"></div>
+    </fieldset>
+
     <div id="t-info" class="muted"></div>
     <div id="t-err" class="err"></div>
     <div class="actions">
@@ -153,9 +247,95 @@
   </form>
 </dialog>
 
-<dialog id="dlg-help">
-  <div class="help">
-    <div class="help-head">
+<!-- แดชบอร์ด + แผนปี -->
+<dialog id="dlg-dash" class="wide">
+  <div class="pane">
+    <div class="pane-head sticky-head">
+      <h2>แดชบอร์ดเทียบแผน</h2>
+      <div class="head-btns">
+        <select id="d-fy" class="f" aria-label="ปีงบประมาณ" style="width:auto"></select>
+        <button type="button" id="btn-copy-open">คัดลอกสรุป</button>
+        <button type="button" id="btn-dash-close">ปิด</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0">นับตามปีงบประมาณของวันที่ได้รับมอบหมาย ไม่นับงานที่ยกเลิก · แก้ตัวเลขแผนในช่องได้เลย แล้วกด "บันทึกแผน" (ทุกการแก้บันทึกประวัติ)</p>
+    <div class="tbl-wrap">
+      <table class="tbl" id="d-table"></table>
+    </div>
+    <div class="actions" style="justify-content:space-between; align-items:center">
+      <div><span id="d-err" class="err"></span><span id="d-ok" class="okmsg"></span></div>
+      <button type="button" class="primary" id="btn-plan-save">บันทึกแผน</button>
+    </div>
+    <h3>สถานะงานในปีนี้</h3>
+    <div class="tbl-wrap"><table class="tbl" id="d-status"></table></div>
+    <h3>งานค้างรายคน</h3>
+    <div class="tbl-wrap"><table class="tbl" id="d-owner"></table></div>
+  </div>
+</dialog>
+
+<!-- คัดลอกสรุป -->
+<dialog id="dlg-copy">
+  <div class="pane">
+    <h2>คัดลอกสรุปไปทำ presentation</h2>
+    <div class="warn">
+      <b>คำเตือนก่อนคัดลอก</b>
+      <ul>
+        <li>ข้อความจะออกจากระบบไปอยู่ในคลิปบอร์ดของเครื่องนี้ ใช้ทำเอกสารนำเสนอภายในสำนักงานเท่านั้น</li>
+        <li>ห้ามวางในกลุ่ม LINE แชตภายนอก หรือเครื่องมือ AI</li>
+        <li>ข้อความมีแต่ตัวเลข ไม่มีชื่อหน่วยรับตรวจ ชื่อเรื่อง หรือชื่อบุคคล แต่ยังเป็นข้อมูลภายใน ตรวจก่อนวางทุกครั้ง</li>
+      </ul>
+    </div>
+    <label class="check"><input type="radio" name="copy-kind" id="copy-total" value="total" checked> เฉพาะตัวเลขรวม</label>
+    <label class="check"><input type="radio" name="copy-kind" id="copy-detail" value="detail"> ตัวเลขแยกตามประเภทงานและสถานะ</label>
+    <textarea id="copy-text" rows="9" readonly aria-label="ข้อความที่จะคัดลอก"></textarea>
+    <label class="check"><input type="checkbox" id="copy-ack"> รับทราบคำเตือนแล้ว</label>
+    <div id="copy-msg" class="okmsg"></div>
+    <div class="actions">
+      <button type="button" id="btn-copy-close">ปิด</button>
+      <button type="button" class="primary" id="btn-copy-do" disabled>คัดลอก</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- วันหยุด -->
+<dialog id="dlg-hol" class="wide">
+  <div class="pane">
+    <div class="pane-head sticky-head">
+      <h2>วันหยุดที่ใช้นับวันทำการ</h2>
+      <div class="head-btns">
+        <select id="h-year" class="f" aria-label="ปี" style="width:auto"></select>
+        <button type="button" id="btn-hol-close">ปิด</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0">เสาร์-อาทิตย์เป็นวันหยุดเสมอ รายการ "Google" ระบบดึงจากปฏิทินวันหยุดไทยของ Google ทุกเช้า
+      เพิ่มหรือลบวันหยุดแล้ว ระบบจะเลื่อนกำหนดส่งของงานที่ยังไม่เสร็จและกำหนดเป็น "จำนวนวัน" ให้อัตโนมัติ และบันทึกประวัติ</p>
+    <form id="hol-form" novalidate style="padding:0">
+      <div class="row3">
+        <label>วันที่ <input type="date" id="h-date"></label>
+        <label>ประเภท
+          <select id="h-kind">
+            <option value="ADD">เพิ่มวันหยุดพิเศษ</option>
+            <option value="REMOVE">ไม่ใช่วันหยุด (ยกเลิกรายการของ Google)</option>
+          </select>
+        </label>
+        <label>ชื่อ / เหตุผล (ไม่บังคับ) <input type="text" id="h-name" maxlength="100" autocomplete="off"></label>
+      </div>
+      <div class="actions" style="justify-content:space-between; align-items:center">
+        <div><span id="h-err" class="err"></span><span id="h-ok" class="okmsg"></span></div>
+        <div class="head-btns">
+          <button type="button" id="btn-hol-sync">ดึงจาก Google ตอนนี้</button>
+          <button type="submit" class="primary" id="btn-hol-add">เพิ่ม</button>
+        </div>
+      </div>
+    </form>
+    <div class="tbl-wrap"><table class="tbl" id="h-table"></table></div>
+  </div>
+</dialog>
+
+<!-- คู่มือ -->
+<dialog id="dlg-help" class="wide">
+  <div class="pane help">
+    <div class="pane-head sticky-head">
       <h2>คู่มือการใช้งาน</h2>
       <button type="button" id="btn-help-close">ปิด</button>
     </div>
@@ -176,14 +356,40 @@
       <li>กด <b>บันทึก</b></li>
     </ol>
 
-    <h3>3. แก้ไขงานและเปลี่ยนสถานะ</h3>
+    <h3>3. กำหนดส่ง</h3>
+    <ul>
+      <li><b>ระบุจำนวนวัน</b>: กรอกจำนวนวัน แล้วเลือกนับแบบ <b>วันทำการ</b> หรือ <b>วันปฏิทิน</b> ตามระเบียบหรือคำสั่ง ระบบคำนวณวันที่ให้และแสดงก่อนบันทึก</li>
+      <li>วันที่ 1 คือวันถัดจากวันที่รับเรื่อง ถ้าวันนั้นเป็นวันหยุด วันที่ 1 จะเลื่อนไปเป็นวันทำการถัดไป</li>
+      <li>นับแบบวันปฏิทิน ถ้าวันสุดท้ายตรงกับวันหยุด กำหนดส่งเลื่อนไปเป็นวันทำการถัดไป</li>
+      <li><b>ระบุวันที่เอง</b>: ใช้เมื่อได้รับกำหนดเป็นวันที่ เลือกวิธีนับไว้ด้วย เพื่อให้สีเตือนนับถูกแบบ</li>
+      <li>ถ้ามีการเพิ่มหรือลบวันหยุด ระบบเลื่อนกำหนดส่งของงานแบบ "จำนวนวัน" ที่ยังไม่เสร็จให้เอง ประวัติจะบันทึกผู้แก้เป็น SYSTEM</li>
+    </ul>
+
+    <h3>4. สีเตือน</h3>
+    <table>
+      <tr><td><span class="due over">เลยกำหนด</span></td><td>เลยวันกำหนดส่งแล้ว</td></tr>
+      <tr><td><span class="due today">ครบกำหนดวันนี้</span></td><td>กำหนดส่งคือวันนี้</td></tr>
+      <tr><td><span class="due near">เหลือ 1–7 วัน</span></td><td>นับตามวิธีที่งานนั้นเลือก (วันทำการ หรือ วันปฏิทิน)</td></tr>
+      <tr><td><span class="due none">ยังไม่กำหนดส่ง</span></td><td>ควรเข้าไประบุกำหนดส่ง</td></tr>
+    </table>
+    <p class="muted" style="margin:0">งานที่เสร็จหรือยกเลิกแล้วไม่มีสีเตือน</p>
+
+    <h3>5. สรุปเช้า / เย็น</h3>
+    <ul>
+      <li>ระบบสร้างสรุปเวลาประมาณ 07:30 และ 16:30 ของวันทำการ (คลาดได้ราว 15 นาที) ดูได้ในแอปนี้เท่านั้น</li>
+      <li>สรุปเช้า: เลยกำหนด · ครบกำหนดวันนี้ · ใกล้กำหนด · ยังไม่กำหนดส่ง · งานค้างทั้งหมด</li>
+      <li>สรุปเย็น: เสร็จวันนี้ · เปลี่ยนสถานะวันนี้ · เลยกำหนด · งานค้างทั้งหมด</li>
+      <li>แตะตัวเลขเพื่อดูรายการงานนั้น ตัวกรอง "งานของฉัน" ใช้กับตัวเลขสรุปด้วย</li>
+    </ul>
+
+    <h3>6. แก้ไขงานและเปลี่ยนสถานะ</h3>
     <ul>
       <li>แตะการ์ดงานเพื่อเปิดฟอร์ม แก้ แล้วกดบันทึก ทุกคนในทีมแก้ได้ทุกงาน</li>
       <li>ถ้ามีคนแก้งานเดียวกันก่อนคุณ ระบบจะแจ้งและโหลดข้อมูลล่าสุดให้ ตรวจแล้วแก้อีกครั้ง</li>
-      <li>ทุกการสร้าง แก้ไข และเปลี่ยนสถานะ ระบบบันทึกประวัติไว้ว่าใคร เมื่อไร ค่าเดิม ค่าใหม่ ประวัตินี้แก้ไขไม่ได้</li>
+      <li>ทุกการสร้าง แก้ไข เปลี่ยนสถานะ แก้แผน และแก้วันหยุด ระบบบันทึกประวัติไว้ว่าใคร เมื่อไร ค่าเดิม ค่าใหม่ ประวัตินี้แก้ไขไม่ได้</li>
     </ul>
 
-    <h3>4. ความหมายของสถานะ</h3>
+    <h3>7. ความหมายของสถานะ</h3>
     <table>
       <tr><td><span class="chip st-ASSIGNED">ได้รับมอบหมาย</span></td><td>รับงานแล้ว ยังไม่เริ่ม</td></tr>
       <tr><td><span class="chip st-IN_PROGRESS">กำลังดำเนินการ</span></td><td>อยู่ระหว่างตรวจสอบ</td></tr>
@@ -193,7 +399,22 @@
       <tr><td><span class="chip st-CANCELLED">ยกเลิก</span></td><td>ไม่ทำงานนี้แล้ว ไม่นับเป็นงานค้าง ไม่มีแจ้งเตือน เปลี่ยนกลับได้ ระบบไม่มีการลบงาน</td></tr>
     </table>
 
-    <h3>5. ใช้รหัสแทนชื่อ</h3>
+    <h3>8. แดชบอร์ด แผนปี และคัดลอกสรุป</h3>
+    <ul>
+      <li>ปุ่ม <b>แดชบอร์ด</b>: เลือกปีงบประมาณ ดูจำนวนเรื่องตามแผน เสร็จ ค้าง เลยกำหนด แยกตามประเภทงาน</li>
+      <li>แผนปีเก็บเฉพาะจำนวนเรื่องต่อประเภทงาน ทุกคนแก้ได้ แก้ในตารางแล้วกด <b>บันทึกแผน</b></li>
+      <li><b>คัดลอกสรุป</b>: เลือก "เฉพาะตัวเลขรวม" หรือ "แยกตามประเภทงานและสถานะ" อ่านคำเตือน ติ๊กรับทราบ แล้วกดคัดลอก ข้อความไม่มีชื่อหน่วย ชื่อเรื่อง หรือชื่อบุคคล</li>
+    </ul>
+
+    <h3>9. วันหยุด</h3>
+    <ul>
+      <li>ปุ่ม <b>วันหยุด</b>: ดูรายการวันหยุดที่ระบบใช้นับ ระบบดึงจากปฏิทินวันหยุดไทยของ Google ทุกเช้า</li>
+      <li>ครม. ประกาศวันหยุดเพิ่ม: เลือก "เพิ่มวันหยุดพิเศษ" ใส่วันที่ แล้วกดเพิ่ม</li>
+      <li>รายการของ Google ที่ราชการไม่ได้หยุดจริง: เลือก "ไม่ใช่วันหยุด" ใส่วันที่นั้น</li>
+      <li>เพิ่มผิด กด "ลบ" ที่รายการนั้น ทุกครั้งระบบเลื่อนกำหนดส่งที่เกี่ยวข้องให้อัตโนมัติ</li>
+    </ul>
+
+    <h3>10. ใช้รหัสแทนชื่อ</h3>
     <ul>
       <li>ใช้กับงานที่ต้องปกปิดชื่อหน่วยรับตรวจและชื่อเรื่อง จนกว่าจะออกหนังสือแจ้งเข้าตรวจ</li>
       <li>ติ๊ก <b>ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง</b> แล้วกรอกเป็นรหัส เช่น <code>K-69-001</code> (อังกฤษ ตัวเลข และ - / _ . ไม่เกิน 30 ตัว) ระบบไม่รับภาษาไทยในช่องนี้</li>
@@ -201,7 +422,7 @@
       <li>เมื่อออกหนังสือแจ้งเข้าตรวจแล้ว เปิดงาน เอาติ๊กออก แล้วแก้เป็นชื่อจริง</li>
     </ul>
 
-    <h3>6. ค้นหาและกรองงาน</h3>
+    <h3>11. ค้นหาและกรองงาน</h3>
     <ul>
       <li>ช่องค้นหา: พิมพ์ชื่อหน่วย ชื่อเรื่อง หรือเลขงาน (เช่น T691011-ABC123)</li>
       <li>ตัวกรองสถานะ: "งานค้างทั้งหมด" คือทุกงานที่ยังไม่เสร็จและไม่ได้ยกเลิก</li>
@@ -209,7 +430,7 @@
       <li>รายการเรียงงานค้างก่อน และเรียงตามกำหนดส่งที่ใกล้ที่สุด งานที่ไม่ระบุกำหนดส่งอยู่ท้าย</li>
     </ul>
 
-    <h3>7. เครื่องมือปิดชื่อ (ไฟล์ Excel/CSV)</h3>
+    <h3>12. เครื่องมือปิดชื่อ (ไฟล์ Excel/CSV)</h3>
     <ul>
       <li>กดปุ่ม <b>เครื่องมือปิดชื่อ</b> ที่มุมขวาบน ระบบเปิดเครื่องมือในแท็บใหม่ ถ้าเปิดจากแอป LINE จะเปิดในเบราว์เซอร์ของเครื่องแทน</li>
       <li>ใช้แทนชื่อบุคคล ผู้ขาย เลขบัตร เลขบัญชี ในไฟล์ .xlsx .xls .csv ด้วยรหัส แล้วเปิดรหัสกลับเมื่อได้ผลลัพธ์</li>
@@ -218,7 +439,7 @@
       <li>แนะนำใช้บนคอมพิวเตอร์ ดูวิธีใช้ละเอียดได้ที่แท็บ "วิธีใช้" ในเครื่องมือ</li>
     </ul>
 
-    <h3>8. ข้อห้าม</h3>
+    <h3>13. ข้อห้าม</h3>
     <ul>
       <li>ช่วงทดลองใช้ข้อมูลสมมุติเท่านั้น จนกว่าได้รับอนุญาตให้ใช้ข้อมูลจริง</li>
       <li>ห้ามบันทึกชื่อหรือข้อมูลที่ระบุตัวบุคคลผู้แจ้งเรื่อง</li>
@@ -243,26 +464,35 @@ const ERR = {
   NETWORK: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง',
   BAD_REQUEST: 'คำขอไม่ถูกต้อง',
   NOT_SETUP: 'ระบบยังตั้งค่าไม่ครบ แจ้งผู้ดูแลระบบ',
-  SHEET_HEADER_MISMATCH: 'โครงสร้างแผ่นงานไม่ตรง แจ้งผู้ดูแลระบบ',
+  SHEET_HEADER_MISMATCH: 'โครงสร้างแผ่นงานไม่ตรง แจ้งผู้ดูแลระบบ (อาจยังไม่ได้รัน setup หลังอัปเดต)',
   LOGIN_FAILED: 'ยืนยันตัวตนกับ LINE ไม่สำเร็จ',
   TOKEN_STALE: 'การยืนยันตัวตนหมดอายุ',
   SESSION_EXPIRED: 'หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่',
   BUSY: 'ระบบกำลังบันทึกงานของคนอื่น ลองใหม่อีกครั้ง',
-  NOT_FOUND: 'ไม่พบงานนี้ (อาจถูกเปลี่ยนแปลง)',
+  NOT_FOUND: 'ไม่พบรายการนี้ (อาจถูกเปลี่ยนแปลง)',
   CONFLICT: 'มีคนแก้ไขงานนี้ก่อนหน้าคุณ ระบบโหลดข้อมูลล่าสุดแล้ว กรุณาตรวจสอบและแก้ไขอีกครั้ง',
   INVALID: 'ข้อมูลไม่ถูกต้อง',
   FORBIDDEN_WORD: 'มีคำต้องห้ามในข้อความ กรุณาใช้คำอื่น',
   MASKED_NEEDS_CODE: 'งานที่ใช้รหัสแทนชื่อ ต้องกรอกเป็นรหัสเท่านั้น',
   DUE_BEFORE_ASSIGNED: 'กำหนดส่งต้องไม่ก่อนวันที่ได้รับมอบหมาย',
+  DUPLICATE: 'มีรายการนี้อยู่แล้ว',
+  HOLIDAY_CONFLICT: 'วันนี้มีรายการตรงข้ามอยู่แล้ว (วันหยุด / ไม่ใช่วันหยุด) ลบรายการเดิมก่อน',
+  HOLIDAY_FETCH_FAILED: 'ดึงวันหยุดจาก Google ไม่สำเร็จ ลองใหม่ภายหลัง หรือเพิ่มวันหยุดเอง',
   SERVER_ERROR: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์'
 };
 const FIELD_TH = { category: 'ประเภทงาน', auditee: 'หน่วยรับตรวจ', title: 'ชื่อเรื่อง', ownerKey: 'ผู้รับผิดชอบ',
-                   status: 'สถานะ', assignedDate: 'วันที่ได้รับมอบหมาย', dueDate: 'กำหนดส่ง' };
+                   status: 'สถานะ', assignedDate: 'วันที่ได้รับมอบหมาย', dueDate: 'กำหนดส่ง', dueMode: 'วิธีกำหนดส่ง',
+                   durationDays: 'จำนวนวัน', countMode: 'วิธีนับวัน', dueBasis: 'ที่มาของกำหนดส่ง',
+                   date: 'วันที่', kind: 'ประเภท', name: 'ชื่อ', fiscalYear: 'ปีงบประมาณ', target: 'จำนวนเรื่องตามแผน', holidays: 'วันหยุด' };
 const TH_MONTH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_DOW = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
 
 const S = { token: null, me: null, statuses: [], closed: ['DONE', 'CANCELLED'], categories: [], members: [], tasks: [], today: '',
+            dueModes: [], countModes: [], dueBases: [], nearDays: 7, maxDays: 365, holidays: [], hol: {}, plans: [], summaries: {},
+            sumTab: 'AM', idFilter: null,
             idleMin: 15, lastActive: Date.now(), lastPing: Date.now(), editing: null };
 const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 
 /* ---------- storage (sessionStorage: หายเมื่อปิดแท็บ) ---------- */
 const ss = {
@@ -275,6 +505,46 @@ const errText = e => {
   const base = ERR[e && e.code] || ERR.SERVER_ERROR;
   return (e && e.detail && FIELD_TH[e.detail]) ? base + ' (' + FIELD_TH[e.detail] + ')' : base;
 };
+
+/* ---------- วันที่และวันทำการ (ตรรกะเดียวกับ Util.gs ฝั่งเซิร์ฟเวอร์) ---------- */
+const dUtc = s => new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)));
+const addDays = (s, n) => { const d = dUtc(s); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const diffDays = (a, b) => Math.round((dUtc(b) - dUtc(a)) / 86400000);
+const isDate = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(dUtc(s)) && dUtc(s).toISOString().slice(0, 10) === s;
+const isWorking = (s, hol) => { const w = dUtc(s).getUTCDay(); return w !== 0 && w !== 6 && !hol[s]; };
+function nextWorking(s, hol) { let d = s, g = 0; while (!isWorking(d, hol) && g++ < 60) d = addDays(d, 1); return d; }
+function computeDue(assigned, n, mode, hol) {
+  let d = nextWorking(addDays(assigned, 1), hol);
+  if (mode === 'WORK') { let c = 1; while (c < n) { d = addDays(d, 1); if (isWorking(d, hol)) c++; } return d; }
+  return nextWorking(addDays(d, n - 1), hol);
+}
+function remaining(today, due, mode, hol) {
+  if (due === today) return 0;
+  const sign = due > today ? 1 : -1, from = sign > 0 ? today : due, to = sign > 0 ? due : today;
+  let n;
+  if (mode === 'WORK') { n = 0; for (let d = addDays(from, 1); d <= to; d = addDays(d, 1)) if (isWorking(d, hol)) n++; n = Math.max(1, n); }
+  else n = diffDays(from, to);
+  return sign * n;
+}
+function buildHolSet(rows) {
+  const set = {};
+  rows.forEach(h => { if (h.kind === 'GCAL' || h.kind === 'ADD') set[h.date] = true; });
+  rows.forEach(h => { if (h.kind === 'REMOVE') delete set[h.date]; });
+  return set;
+}
+const fiscalYearOf = s => isDate(s) ? String((+s.slice(5, 7) >= 10 ? +s.slice(0, 4) + 1 : +s.slice(0, 4)) + 543) : '';
+
+/** สถานะกำหนดส่งของงาน: {cls, text} */
+function dueState(t) {
+  if (isClosed(t)) return null;
+  if (!t.dueDate) return { cls: 'none', text: 'ยังไม่กำหนดส่ง' };
+  const unit = t.countMode === 'WORK' ? ' วันทำการ' : ' วัน';
+  const r = remaining(S.today, t.dueDate, t.countMode, S.hol);
+  if (r < 0) return { cls: 'over', text: 'เลยกำหนด ' + (-r) + unit };
+  if (r === 0) return { cls: 'today', text: 'ครบกำหนดวันนี้' };
+  if (r <= S.nearDays) return { cls: 'near', text: 'เหลือ ' + r + unit };
+  return { cls: 'ok', text: 'เหลือ ' + r + unit };
+}
 
 /* ---------- API ---------- */
 async function api(action, extra) {
@@ -355,10 +625,21 @@ async function start() {
   }
 }
 
+function applySnapshot(d) {
+  S.tasks = d.tasks || [];
+  S.today = d.today || S.today;
+  S.holidays = d.holidays || [];
+  S.hol = buildHolSet(S.holidays);
+  S.plans = d.plans || [];
+  S.summaries = d.summaries || {};
+}
+
 async function loadApp() {
   const d = await call('bootstrap');
   Object.assign(S, { me: d.me, statuses: d.statuses, closed: d.closedStatuses || S.closed, categories: d.categories, members: d.members,
-                     tasks: d.tasks, today: d.today, idleMin: d.idleMinutes });
+                     dueModes: d.dueModes || [], countModes: d.countModes || [], dueBases: d.dueBases || [],
+                     nearDays: d.nearDueDays || 7, maxDays: d.maxDurationDays || 365, idleMin: d.idleMinutes });
+  applySnapshot(d);
   $('me-line').textContent = 'ผู้ใช้: ' + d.me.displayName;
   fillSelect($('f-status'), [{ v: 'OPEN', t: 'งานค้างทั้งหมด' }, { v: '', t: 'ทุกสถานะ' }]
     .concat(S.statuses.map(s => ({ v: s.code, t: s.label }))));
@@ -367,6 +648,11 @@ async function loadApp() {
   fillSelect($('t-category'), S.categories.map(c => ({ v: c.code, t: c.label })));
   fillSelect($('t-status'), S.statuses.map(s => ({ v: s.code, t: s.label })));
   fillSelect($('t-owner'), S.members.map(m => ({ v: m.memberKey, t: m.displayName })));
+  fillSelect($('t-duemode'), S.dueModes.map(m => ({ v: m.code, t: m.label })));
+  fillSelect($('t-countmode'), S.countModes.map(m => ({ v: m.code, t: m.label })));
+  fillSelect($('t-basis'), [{ v: '', t: 'ไม่ระบุ' }].concat(S.dueBases.map(m => ({ v: m.code, t: m.label }))));
+  $('t-days').max = S.maxDays;
+  S.sumTab = defaultSumTab();
   S.lastActive = Date.now();
   show('screen-app');
   render();
@@ -375,9 +661,8 @@ async function loadApp() {
 async function endSession(text, callServer) {
   if (callServer && S.token) { try { await api('logout'); } catch (e) {} }
   S.token = null; ss.del('kn_s');
-  S.tasks = []; $('list').textContent = ''; $('counts').textContent = '';
-  if ($('dlg').open) $('dlg').close();
-  if ($('dlg-help').open) $('dlg-help').close();
+  S.tasks = []; S.summaries = {}; $('list').textContent = ''; $('counts').textContent = ''; $('sum-tiles').textContent = '';
+  ['dlg', 'dlg-help', 'dlg-dash', 'dlg-copy', 'dlg-hol'].forEach(id => { if ($(id).open) $(id).close(); });
   try { liff.logout(); } catch (e) {}
   showMsg(text, true);
 }
@@ -391,55 +676,103 @@ const isClosed = t => S.closed.indexOf(t.status) !== -1;
 const statusLabel = c => (S.statuses.find(s => s.code === c) || {}).label || c;
 const RETIRED_CAT = 'ประเภทที่เลิกใช้';
 const catLabel = c => (S.categories.find(x => x.code === c) || {}).label || RETIRED_CAT;
-const memberName = k => (S.members.find(m => m.memberKey === k) || {}).displayName || k;
-function thDate(s) {
+const memberName = k => k === 'SYSTEM' ? 'ระบบ (อัตโนมัติ)' : ((S.members.find(m => m.memberKey === k) || {}).displayName || k);
+const countLabel = c => (S.countModes.find(x => x.code === c) || {}).label || '';
+const basisLabel = c => (S.dueBases.find(x => x.code === c) || {}).label || '';
+function thDate(s, withDow) {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return '-';
-  return (+s.slice(8, 10)) + ' ' + TH_MONTH[+s.slice(5, 7) - 1] + ' ' + String(+s.slice(0, 4) + 543).slice(-2);
+  const t = (+s.slice(8, 10)) + ' ' + TH_MONTH[+s.slice(5, 7) - 1] + ' ' + String(+s.slice(0, 4) + 543).slice(-2);
+  return withDow ? TH_DOW[dUtc(s).getUTCDay()] + ' ' + t : t;
 }
+const hhmm = iso => (iso && iso.length >= 16) ? iso.slice(11, 16) : '';
 
 function render() {
+  renderSummary();
   const q = $('f-search').value.trim().toLowerCase();
   const fs = $('f-status').value, fo = $('f-owner').value;
 
   const counts = $('counts'); counts.textContent = '';
   S.statuses.forEach(s => {
-    const n = S.tasks.filter(t => t.status === s.code).length;
-    const el = document.createElement('div'); el.className = 'count';
-    el.textContent = s.label; const b = document.createElement('b'); b.textContent = n; el.appendChild(b);
-    counts.appendChild(el);
+    const n = S.tasks.filter(t => t.status === s.code && (fo === '' || t.ownerKey === fo)).length;
+    const c = el('div', 'count', s.label); c.appendChild(el('b', '', n));
+    counts.appendChild(c);
   });
 
+  const ids = S.idFilter ? S.idFilter.ids : null;
+  $('ids-notice').classList.toggle('hidden', !ids);
+  if (ids) $('ids-text').textContent = 'กำลังแสดง: ' + S.idFilter.label;
+
   const rows = S.tasks.filter(t =>
-      (fs === '' || (fs === 'OPEN' ? !isClosed(t) : t.status === fs)) &&
+      (ids ? ids.indexOf(t.id) !== -1 : (fs === '' || (fs === 'OPEN' ? !isClosed(t) : t.status === fs))) &&
       (fo === '' || t.ownerKey === fo) &&
       (!q || (t.auditee + ' ' + t.title + ' ' + t.id).toLowerCase().includes(q)))
     .sort((a, b) => isClosed(a) - isClosed(b) || (!a.dueDate) - (!b.dueDate) || a.dueDate.localeCompare(b.dueDate));
 
   const list = $('list'); list.textContent = '';
-  if (!rows.length) {
-    const e = document.createElement('div'); e.className = 'empty'; e.textContent = 'ไม่มีงานตามเงื่อนไขที่เลือก';
-    list.appendChild(e); return;
-  }
+  if (!rows.length) { list.appendChild(el('div', 'empty', 'ไม่มีงานตามเงื่อนไขที่เลือก')); return; }
   rows.forEach(t => {
-    const card = document.createElement('button'); card.type = 'button'; card.className = 'card' + (t.status === 'CANCELLED' ? ' cancelled' : '');
-    const top = document.createElement('div'); top.className = 'top';
-    const au = document.createElement('div'); au.className = 'auditee'; au.textContent = t.auditee || '(ไม่ระบุหน่วยรับตรวจ)';
-    if (t.masked) { const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = 'ใช้รหัส'; au.appendChild(bd); }
-    const chip = document.createElement('span'); chip.className = 'chip st-' + t.status; chip.textContent = statusLabel(t.status);
-    top.append(au, chip);
-    const ti = document.createElement('div'); ti.className = 'title'; ti.textContent = t.title || '(ไม่ระบุชื่อเรื่อง)';
-    const meta = document.createElement('div'); meta.className = 'meta';
-    [catLabel(t.category), 'ผู้รับผิดชอบ: ' + memberName(t.ownerKey),
-     'กำหนดส่ง: ' + (t.dueDate ? thDate(t.dueDate) : 'ไม่ระบุ')].concat(t.doneDate ? ['เสร็จ: ' + thDate(t.doneDate)] : [])
-      .forEach(x => { const s = document.createElement('span'); s.textContent = x; meta.appendChild(s); });
-    card.append(top, ti, meta);
+    const ds = dueState(t);
+    const card = el('button', 'card' + (t.status === 'CANCELLED' ? ' cancelled' : '') + (ds && ['over', 'today', 'near'].includes(ds.cls) ? ' d-' + ds.cls : ''));
+    card.type = 'button';
+    const top = el('div', 'top');
+    const au = el('div', 'auditee', t.auditee || '(ไม่ระบุหน่วยรับตรวจ)');
+    if (t.masked) au.appendChild(el('span', 'badge', 'ใช้รหัส'));
+    top.append(au, el('span', 'chip st-' + t.status, statusLabel(t.status)));
+    const meta = el('div', 'meta');
+    if (ds) meta.appendChild(el('span', 'due ' + ds.cls, ds.text));
+    let dueTxt = t.dueDate ? 'กำหนดส่ง: ' + thDate(t.dueDate, true) : '';
+    if (t.dueDate && t.dueMode === 'DAYS') dueTxt += ' (' + t.durationDays + ' ' + countLabel(t.countMode) + ')';
+    [catLabel(t.category), 'ผู้รับผิดชอบ: ' + memberName(t.ownerKey), dueTxt]
+      .concat(t.doneDate ? ['เสร็จ: ' + thDate(t.doneDate)] : [])
+      .filter(Boolean).forEach(x => meta.appendChild(el('span', '', x)));
+    card.append(top, el('div', 'title', t.title || '(ไม่ระบุชื่อเรื่อง)'), meta);
     card.addEventListener('click', () => openForm(t));
     list.appendChild(card);
   });
 }
 
+/* ---------- สรุปเช้า/เย็น ---------- */
+function defaultSumTab() {
+  const now = new Date(), m = now.getHours() * 60 + now.getMinutes();
+  const pm = S.summaries.PM;
+  return (m >= 16 * 60 + 30 && pm && pm.date === S.today) ? 'PM' : 'AM';
+}
+const SUM_TILES = {
+  AM: [['overdue', 'เลยกำหนด', 'over'], ['dueToday', 'ครบกำหนดวันนี้', 'today'], ['near', 'ใกล้กำหนด (≤7 วัน)', 'near'],
+       ['noDue', 'ยังไม่กำหนดส่ง', ''], ['openTotal', 'งานค้างทั้งหมด', '']],
+  PM: [['doneToday', 'เสร็จวันนี้', ''], ['changedToday', 'เปลี่ยนสถานะวันนี้', ''], ['overdue', 'เลยกำหนด', 'over'], ['openTotal', 'งานค้างทั้งหมด', '']]
+};
+function renderSummary() {
+  const kind = S.sumTab, s = S.summaries[kind];
+  $('tab-am').setAttribute('aria-pressed', kind === 'AM'); $('tab-pm').setAttribute('aria-pressed', kind === 'PM');
+  $('sum-title').textContent = kind === 'AM' ? 'สรุปเช้า' : 'สรุปเย็น';
+  const tiles = $('sum-tiles'); tiles.textContent = '';
+  if (!s) {
+    $('sum-sub').textContent = 'ยังไม่มีสรุป ระบบจะสร้างเวลาประมาณ ' + (kind === 'AM' ? '07:30' : '16:30') + ' ของวันทำการ';
+    return;
+  }
+  $('sum-sub').textContent = 'ข้อมูล ณ ' + thDate(s.date, true) + ' ' + hhmm(s.generatedAt) + ' น.' +
+    (s.date !== S.today ? ' (สรุปล่าสุด)' : '') + ($('f-owner').value ? ' · ตามตัวกรองผู้รับผิดชอบ' : '');
+  const fo = $('f-owner').value;
+  const mine = id => { const t = S.tasks.find(x => x.id === id); return t && (!fo || t.ownerKey === fo); };
+  SUM_TILES[kind].forEach(([key, label, cls]) => {
+    let ids = null, n;
+    if (key === 'openTotal') {
+      n = fo ? S.tasks.filter(t => !isClosed(t) && t.ownerKey === fo).length : s.openTotal;
+      if (fo) label += ' (ปัจจุบัน)';
+    } else { ids = (s[key] || []).filter(mine); n = ids.length; }
+    const b = el('button', 'tile' + (n && cls ? ' ' + cls : ''));
+    b.type = 'button';
+    b.append(el('b', '', n), el('span', '', label));
+    if (key === 'openTotal') b.addEventListener('click', () => { S.idFilter = null; $('f-status').value = 'OPEN'; render(); });
+    else if (n) b.addEventListener('click', () => { S.idFilter = { ids: ids, label: label + ' (' + (kind === 'AM' ? 'สรุปเช้า' : 'สรุปเย็น') + ')' }; render(); $('list').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    else b.disabled = true;
+    tiles.appendChild(b);
+  });
+}
+
 async function refresh() {
-  try { const d = await call('listTasks'); S.tasks = d.tasks; S.today = d.today; render(); }
+  try { applySnapshot(await call('listTasks')); render(); }
   catch (e) { if (e.code !== 'SESSION_EXPIRED') alert(errText(e)); }
 }
 
@@ -449,6 +782,32 @@ function updateMaskedUi() {
   $('masked-hint').classList.toggle('hidden', !m);
   $('lbl-auditee').textContent = m ? 'รหัสหน่วยรับตรวจ' : 'หน่วยรับตรวจ';
   $('lbl-title').textContent = m ? 'รหัสเรื่อง' : 'ชื่อเรื่อง';
+}
+
+/** แสดง/ซ่อนช่องตามวิธีกำหนดส่ง และแสดงวันที่ที่ระบบคำนวณ */
+function updateDueUi() {
+  const mode = $('t-duemode').value;
+  $('due-row').classList.toggle('hidden', mode === 'NONE');
+  $('wrap-days').classList.toggle('hidden', mode !== 'DAYS');
+  $('wrap-due').classList.toggle('hidden', mode !== 'DATE');
+  const pv = $('due-preview');
+  pv.textContent = '';
+  if (mode === 'NONE') {
+    pv.classList.remove('hidden');
+    pv.textContent = 'งานนี้จะขึ้นป้าย "ยังไม่กำหนดส่ง" และนับในสรุปเช้าจนกว่าจะระบุ';
+    return;
+  }
+  if (mode === 'DATE') { pv.classList.add('hidden'); return; }
+  pv.classList.remove('hidden');
+  const a = $('t-assigned').value, n = Number($('t-days').value), cm = $('t-countmode').value;
+  if (!isDate(a) || !Number.isInteger(n) || n < 1 || n > S.maxDays) {
+    pv.textContent = 'กรอกวันที่ได้รับมอบหมาย และจำนวนวัน 1–' + S.maxDays + ' วัน เพื่อดูกำหนดส่ง';
+    return;
+  }
+  const due = computeDue(a, n, cm, S.hol);
+  const day1 = nextWorking(addDays(a, 1), S.hol);
+  pv.append('กำหนดส่ง: ', el('b', '', thDate(due, true)));
+  pv.append(' · วันที่ 1 = ' + thDate(day1, true) + ' · นับ ' + n + ' ' + countLabel(cm));
 }
 
 function openForm(task) {
@@ -465,17 +824,27 @@ function openForm(task) {
   $('t-owner').value = task ? task.ownerKey : S.me.memberKey;
   $('t-status').value = task ? task.status : 'ASSIGNED';
   $('t-assigned').value = task ? task.assignedDate : S.today;
-  $('t-due').value = task ? task.dueDate : '';
+  $('t-duemode').value = task ? (task.dueMode || 'NONE') : 'DAYS';
+  $('t-days').value = task && task.dueMode === 'DAYS' ? task.durationDays : '';
+  $('t-countmode').value = task ? (task.countMode || 'CAL') : 'WORK';
+  $('t-due').value = task && task.dueMode === 'DATE' ? task.dueDate : '';
+  $('t-basis').value = task ? (task.dueBasis || '') : '';
   $('t-info').textContent = task
     ? 'ปีงบประมาณ ' + (task.fiscalYear || '-') + (task.doneDate ? ' · เสร็จเมื่อ ' + thDate(task.doneDate) : '') +
       ' · แก้ไขล่าสุดโดย ' + memberName(task.updatedBy)
     : '';
   $('t-err').textContent = '';
   updateMaskedUi();
+  updateDueUi();
   $('dlg').showModal();
 }
 
 function readForm() {
+  const mode = $('t-duemode').value, a = $('t-assigned').value, cm = $('t-countmode').value;
+  const days = $('t-days').value.trim();
+  let due = '';
+  if (mode === 'DATE') due = $('t-due').value;
+  if (mode === 'DAYS' && isDate(a) && /^\d{1,3}$/.test(days) && +days >= 1 && +days <= S.maxDays) due = computeDue(a, +days, cm, S.hol);
   return {
     category: $('t-category').value,
     masked: $('t-masked').checked,
@@ -483,13 +852,21 @@ function readForm() {
     title: $('t-title').value.trim(),
     ownerKey: $('t-owner').value,
     status: $('t-status').value,
-    assignedDate: $('t-assigned').value,
-    dueDate: $('t-due').value
+    assignedDate: a,
+    dueMode: mode,
+    durationDays: mode === 'DAYS' ? String(+days || days) : '',
+    countMode: cm,
+    dueDate: due,
+    dueBasis: $('t-basis').value
   };
 }
 
 function checkForm(f) {
-  if (f.assignedDate && f.dueDate && f.dueDate < f.assignedDate) return ERR.DUE_BEFORE_ASSIGNED;
+  if (!isDate(f.assignedDate)) return ERR.INVALID + ' (' + FIELD_TH.assignedDate + ')';
+  if (f.dueMode === 'DAYS' && !(/^\d{1,3}$/.test(f.durationDays) && +f.durationDays >= 1 && +f.durationDays <= S.maxDays))
+    return 'กรอกจำนวนวันเป็นตัวเลข 1–' + S.maxDays;
+  if (f.dueMode === 'DATE' && !isDate(f.dueDate)) return 'กรอกวันที่กำหนดส่ง หรือเปลี่ยนวิธีกำหนดเป็น "ยังไม่ระบุ"';
+  if (f.dueDate && f.dueDate < f.assignedDate) return ERR.DUE_BEFORE_ASSIGNED;
   if (FORBIDDEN.some(w => (f.auditee + f.title).includes(w))) return ERR.FORBIDDEN_WORD;
   if (f.masked && ((f.auditee && !CODE_RE.test(f.auditee)) || (f.title && !CODE_RE.test(f.title)))) return ERR.MASKED_NEEDS_CODE;
   return '';
@@ -509,7 +886,7 @@ async function saveForm(ev) {
       S.tasks.push(r.task);
     } else {
       const changes = {};
-      Object.keys(f).forEach(k => { if (String(f[k]) !== String(S.editing[k])) changes[k] = f[k]; });
+      Object.keys(f).forEach(k => { if (String(f[k]) !== String(S.editing[k] === undefined ? '' : S.editing[k])) changes[k] = f[k]; });
       if (!Object.keys(changes).length) { $('dlg').close(); return; }
       const r = await call('updateTask', { id: S.editing.id, version: S.editing.version, changes: changes });
       S.tasks = S.tasks.map(t => t.id === r.task.id ? r.task : t);
@@ -527,6 +904,217 @@ async function saveForm(ev) {
   } finally {
     $('btn-save').disabled = false;
   }
+}
+
+/* ---------- แดชบอร์ด + แผนปี ---------- */
+function fyOptions() {
+  const cur = fiscalYearOf(S.today);
+  const set = new Set([cur, String(+cur + 1)]);
+  S.tasks.forEach(t => t.fiscalYear && set.add(t.fiscalYear));
+  S.plans.forEach(p => set.add(p.fiscalYear));
+  return Array.from(set).filter(Boolean).sort().reverse();
+}
+function openDash() {
+  const cur = fiscalYearOf(S.today), keep = $('d-fy').value;
+  fillSelect($('d-fy'), fyOptions().map(y => ({ v: y, t: 'ปีงบประมาณ ' + y })));
+  $('d-fy').value = keep && fyOptions().includes(keep) ? keep : cur;
+  $('d-err').textContent = ''; $('d-ok').textContent = '';
+  renderDash();
+  $('dlg-dash').showModal();
+}
+/** ตัวเลขของปีงบประมาณที่เลือก (ไม่มีชื่อหน่วย/ชื่อเรื่อง) */
+function dashData(fy) {
+  const inYear = S.tasks.filter(t => t.fiscalYear === fy && t.status !== 'CANCELLED');
+  const cats = S.categories.map(c => c.code);
+  inYear.forEach(t => { if (!cats.includes(t.category)) cats.push(t.category); });
+  const rows = cats.map(code => {
+    const ts = inYear.filter(t => t.category === code);
+    const plan = S.plans.find(p => p.fiscalYear === fy && p.category === code);
+    const over = ts.filter(t => { const d = dueState(t); return d && d.cls === 'over'; }).length;
+    return { code, label: catLabel(code), plan: plan ? plan.target : null, total: ts.length,
+             done: ts.filter(t => t.status === 'DONE').length, open: ts.filter(t => !isClosed(t)).length, over,
+             retired: !S.categories.some(c => c.code === code) };
+  });
+  const sum = k => rows.reduce((a, r) => a + (r[k] || 0), 0);
+  const tot = { plan: rows.some(r => r.plan !== null) ? sum('plan') : null, total: sum('total'), done: sum('done'), open: sum('open'), over: sum('over') };
+  const byStatus = S.statuses.map(s => ({ label: s.label, n: S.tasks.filter(t => t.fiscalYear === fy && t.status === s.code).length }));
+  return { rows, tot, byStatus };
+}
+const pct = (a, b) => b ? Math.round(a * 1000 / b) / 10 : null;
+function renderDash() {
+  const fy = $('d-fy').value, d = dashData(fy);
+  const tb = $('d-table'); tb.textContent = '';
+  const thead = el('thead'), hr = el('tr');
+  ['ประเภทงาน', 'แผน (เรื่อง)', 'งานในปี', 'เสร็จ', 'ค้าง', 'เลยกำหนด', 'เสร็จเทียบแผน', ''].forEach(h => hr.appendChild(el('th', '', h)));
+  thead.appendChild(hr); tb.appendChild(thead);
+  const body = el('tbody');
+  d.rows.forEach(r => {
+    const tr = el('tr');
+    tr.appendChild(el('td', '', r.label));
+    const tdp = el('td');
+    if (r.retired) tdp.textContent = '-';
+    else {
+      const inp = el('input'); inp.type = 'number'; inp.min = '0'; inp.max = '999'; inp.step = '1'; inp.inputMode = 'numeric';
+      inp.id = 'plan-' + r.code; inp.dataset.cat = r.code; inp.value = r.plan === null ? '' : r.plan; inp.setAttribute('aria-label', 'แผน ' + r.label);
+      tdp.appendChild(inp);
+    }
+    tr.appendChild(tdp);
+    tr.appendChild(el('td', '', r.total));
+    tr.appendChild(el('td', '', r.done));
+    tr.appendChild(el('td', '', r.open));
+    tr.appendChild(el('td', r.over ? 'num-over' : '', r.over));
+    const p = pct(r.done, r.plan);
+    tr.appendChild(el('td', '', p === null ? '-' : p + '%'));
+    const tdb = el('td'), bar = el('div', 'bar'), i = el('i'); i.style.width = Math.min(100, p || 0) + '%'; bar.appendChild(i); tdb.appendChild(bar);
+    tr.appendChild(tdb);
+    body.appendChild(tr);
+  });
+  tb.appendChild(body);
+  const tf = el('tfoot'), fr = el('tr'), tp = pct(d.tot.done, d.tot.plan);
+  ['รวม', d.tot.plan === null ? '-' : d.tot.plan, d.tot.total, d.tot.done, d.tot.open, d.tot.over, tp === null ? '-' : tp + '%', '']
+    .forEach((v, i) => fr.appendChild(el('td', i === 5 && d.tot.over ? 'num-over' : '', v)));
+  tf.appendChild(fr); tb.appendChild(tf);
+
+  const st = $('d-status'); st.textContent = '';
+  const sh = el('tr'); sh.append(el('th', '', 'สถานะ'), el('th', '', 'จำนวน')); st.appendChild(sh);
+  d.byStatus.forEach(s => { const tr = el('tr'); tr.append(el('td', '', s.label), el('td', '', s.n)); st.appendChild(tr); });
+
+  const ow = $('d-owner'); ow.textContent = '';
+  const oh = el('tr'); oh.append(el('th', '', 'ผู้รับผิดชอบ'), el('th', '', 'งานค้าง (ทุกปี)'), el('th', '', 'เลยกำหนด'), el('th', '', 'ยังไม่กำหนดส่ง')); ow.appendChild(oh);
+  S.members.forEach(m => {
+    const ts = S.tasks.filter(t => t.ownerKey === m.memberKey && !isClosed(t));
+    const over = ts.filter(t => (dueState(t) || {}).cls === 'over').length;
+    const tr = el('tr');
+    tr.append(el('td', '', m.displayName), el('td', '', ts.length), el('td', over ? 'num-over' : '', over), el('td', '', ts.filter(t => !t.dueDate).length));
+    ow.appendChild(tr);
+  });
+}
+async function savePlan() {
+  const fy = $('d-fy').value, targets = {};
+  let bad = false;
+  document.querySelectorAll('#d-table input[data-cat]').forEach(inp => {
+    const v = inp.value.trim();
+    if (v !== '' && !(/^\d{1,3}$/.test(v))) bad = true;
+    targets[inp.dataset.cat] = v;
+  });
+  $('d-ok').textContent = '';
+  if (bad) { $('d-err').textContent = 'แผนต้องเป็นจำนวนเต็ม 0–999 หรือเว้นว่าง'; return; }
+  $('btn-plan-save').disabled = true; $('d-err').textContent = 'กำลังบันทึก…';
+  try {
+    const r = await call('savePlan', { fiscalYear: fy, targets: targets });
+    S.plans = r.plans;
+    $('d-err').textContent = ''; $('d-ok').textContent = 'บันทึกแผนปีงบประมาณ ' + fy + ' แล้ว';
+    renderDash();
+  } catch (e) { if (e.code !== 'SESSION_EXPIRED') $('d-err').textContent = errText(e); }
+  finally { $('btn-plan-save').disabled = false; }
+}
+
+/* ---------- คัดลอกสรุป ---------- */
+function copyText(kind) {
+  const fy = $('d-fy').value, d = dashData(fy), t = d.tot;
+  const tp = pct(t.done, t.plan);
+  const lines = ['สรุปผลการดำเนินงาน ปีงบประมาณ ' + fy + ' (ข้อมูล ณ ' + thDate(S.today) + ')'];
+  lines.push((t.plan === null ? '' : 'แผน ' + t.plan + ' เรื่อง · ') + 'งานในปี ' + t.total + ' เรื่อง · เสร็จ ' + t.done + ' เรื่อง' +
+    (tp === null ? '' : ' (' + tp + '% ของแผน)') + ' · อยู่ระหว่างดำเนินการ ' + t.open + ' เรื่อง · เลยกำหนด ' + t.over + ' เรื่อง');
+  if (kind === 'detail') {
+    lines.push('', 'แยกตามประเภทงาน');
+    d.rows.forEach(r => {
+      const p = pct(r.done, r.plan);
+      lines.push('- ' + r.label + ': ' + (r.plan === null ? '' : 'แผน ' + r.plan + ' · ') + 'เสร็จ ' + r.done + (p === null ? '' : ' (' + p + '%)') +
+        ' · ค้าง ' + r.open + ' · เลยกำหนด ' + r.over);
+    });
+    lines.push('', 'แยกตามสถานะ');
+    d.byStatus.forEach(s => lines.push('- ' + s.label + ': ' + s.n));
+  }
+  const text = lines.join('\n');
+  return FORBIDDEN.some(w => text.includes(w)) ? '' : text; // กันไว้อีกชั้น
+}
+function openCopy() {
+  $('copy-ack').checked = false; $('btn-copy-do').disabled = true; $('copy-msg').textContent = '';
+  $('copy-total').checked = true;
+  $('copy-text').value = copyText('total');
+  $('dlg-copy').showModal();
+}
+async function doCopy() {
+  const text = $('copy-text').value;
+  if (!text) return;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; }
+  catch (e) {
+    const ta = $('copy-text'); ta.removeAttribute('readonly'); ta.select();
+    try { ok = document.execCommand('copy'); } catch (x) {}
+    ta.setAttribute('readonly', ''); ta.setSelectionRange(0, 0);
+  }
+  $('copy-msg').textContent = ok ? 'คัดลอกแล้ว' : 'คัดลอกอัตโนมัติไม่ได้ กดค้างที่ข้อความเพื่อเลือกแล้วคัดลอกเอง';
+}
+
+/* ---------- วันหยุด ---------- */
+const KIND_TH = { GCAL: 'Google', ADD: 'เพิ่มเอง', REMOVE: 'ไม่ใช่วันหยุด' };
+function openHol() {
+  const years = new Set([S.today.slice(0, 4), String(+S.today.slice(0, 4) + 1)]);
+  S.holidays.forEach(h => years.add(h.date.slice(0, 4)));
+  const keep = $('h-year').value;
+  const list = Array.from(years).sort();
+  fillSelect($('h-year'), list.map(y => ({ v: y, t: 'ปี ' + (+y + 543) })));
+  $('h-year').value = keep && list.includes(keep) ? keep : S.today.slice(0, 4);
+  $('h-err').textContent = ''; $('h-ok').textContent = '';
+  if (!$('h-date').value) $('h-date').value = S.today;
+  renderHol();
+  $('dlg-hol').showModal();
+}
+function renderHol() {
+  const y = $('h-year').value, tb = $('h-table'); tb.textContent = '';
+  const removed = new Set(S.holidays.filter(h => h.kind === 'REMOVE').map(h => h.date));
+  const hr = el('tr'); ['วันที่', 'ชื่อ', 'ที่มา', ''].forEach(h => hr.appendChild(el('th', '', h))); tb.appendChild(hr);
+  const rows = S.holidays.filter(h => h.date.slice(0, 4) === y);
+  if (!rows.length) { const tr = el('tr'); const td = el('td', 'muted', 'ไม่มีรายการในปีนี้'); td.colSpan = 4; tr.appendChild(td); tb.appendChild(tr); return; }
+  rows.forEach(h => {
+    const tr = el('tr', 'hol-row' + (h.kind === 'GCAL' && removed.has(h.date) ? ' struck' : ''));
+    tr.append(el('td', '', thDate(h.date, true)), el('td', '', h.name || '-'));
+    const tdk = el('td'); tdk.appendChild(el('span', 'tag', KIND_TH[h.kind] || h.kind)); tr.appendChild(tdk);
+    const tda = el('td');
+    if (h.kind !== 'GCAL') {
+      const b = el('button', 'small', 'ลบ'); b.type = 'button';
+      b.addEventListener('click', () => removeHol(h));
+      tda.appendChild(b);
+    }
+    tr.appendChild(tda);
+    tb.appendChild(tr);
+  });
+}
+async function afterHolChange(r, msg) {
+  S.holidays = r.holidays; S.hol = buildHolSet(S.holidays);
+  $('h-err').textContent = '';
+  $('h-ok').textContent = msg + (r.recomputed ? ' · เลื่อนกำหนดส่งอัตโนมัติ ' + r.recomputed + ' งาน' : '');
+  renderHol();
+  await refresh();
+}
+async function addHol(ev) {
+  ev.preventDefault();
+  const h = { date: $('h-date').value, kind: $('h-kind').value, name: $('h-name').value.trim() };
+  $('h-ok').textContent = '';
+  if (!isDate(h.date)) { $('h-err').textContent = 'เลือกวันที่'; return; }
+  if (FORBIDDEN.some(w => h.name.includes(w))) { $('h-err').textContent = ERR.FORBIDDEN_WORD; return; }
+  $('btn-hol-add').disabled = true; $('h-err').textContent = 'กำลังบันทึก…';
+  try {
+    const r = await call('addHoliday', { holiday: h });
+    $('h-name').value = '';
+    $('h-year').value = h.date.slice(0, 4);
+    await afterHolChange(r, 'บันทึก ' + thDate(h.date, true) + ' แล้ว');
+  } catch (e) { if (e.code !== 'SESSION_EXPIRED') $('h-err').textContent = errText(e); }
+  finally { $('btn-hol-add').disabled = false; }
+}
+async function removeHol(h) {
+  if (!confirm('ลบรายการ "' + KIND_TH[h.kind] + '" วันที่ ' + thDate(h.date, true) + '?\nระบบจะเลื่อนกำหนดส่งที่เกี่ยวข้องให้อัตโนมัติ')) return;
+  $('h-ok').textContent = ''; $('h-err').textContent = 'กำลังลบ…';
+  try { await afterHolChange(await call('removeHoliday', { date: h.date, kind: h.kind }), 'ลบรายการแล้ว'); }
+  catch (e) { if (e.code !== 'SESSION_EXPIRED') $('h-err').textContent = errText(e); }
+}
+async function syncHol() {
+  $('btn-hol-sync').disabled = true; $('h-ok').textContent = ''; $('h-err').textContent = 'กำลังดึงจาก Google…';
+  try { const r = await call('syncHolidays'); await afterHolChange(r, r.changed ? 'อัปเดตจาก Google ' + r.changed + ' วัน' : 'ข้อมูลตรงกับ Google แล้ว'); }
+  catch (e) { if (e.code !== 'SESSION_EXPIRED') $('h-err').textContent = errText(e); }
+  finally { $('btn-hol-sync').disabled = false; }
 }
 
 /* ---------- ออกจากระบบอัตโนมัติเมื่อไม่ใช้งาน ---------- */
@@ -552,13 +1140,31 @@ $('btn-mask').addEventListener('click', () => {
   try { if (window.liff && liff.isInClient()) { liff.openWindow({ url: url, external: true }); return; } } catch (e) {}
   window.open(url, '_blank', 'noopener');
 });
-$('btn-help').addEventListener('click', () => { $('dlg-help').showModal(); $('dlg-help').querySelector('.help').scrollTop = 0; });
+$('btn-help').addEventListener('click', () => { $('dlg-help').showModal(); $('dlg-help').querySelector('.pane').scrollTop = 0; });
 $('btn-help-close').addEventListener('click', () => $('dlg-help').close());
 $('btn-logout').addEventListener('click', () => endSession('ออกจากระบบแล้ว', true));
 $('btn-cancel').addEventListener('click', () => $('dlg').close());
 $('task-form').addEventListener('submit', saveForm);
 $('t-masked').addEventListener('change', updateMaskedUi);
-['f-search', 'f-status', 'f-owner'].forEach(id => $(id).addEventListener('input', render));
+['t-duemode', 't-days', 't-countmode', 't-assigned'].forEach(id => $(id).addEventListener('input', updateDueUi));
+['f-search', 'f-status', 'f-owner'].forEach(id => $(id).addEventListener('input', () => { if (id === 'f-status') S.idFilter = null; render(); }));
+$('btn-clear-ids').addEventListener('click', () => { S.idFilter = null; render(); });
+$('tab-am').addEventListener('click', () => { S.sumTab = 'AM'; renderSummary(); });
+$('tab-pm').addEventListener('click', () => { S.sumTab = 'PM'; renderSummary(); });
+$('btn-dash').addEventListener('click', openDash);
+$('btn-dash-close').addEventListener('click', () => $('dlg-dash').close());
+$('d-fy').addEventListener('change', () => { $('d-err').textContent = ''; $('d-ok').textContent = ''; renderDash(); });
+$('btn-plan-save').addEventListener('click', savePlan);
+$('btn-copy-open').addEventListener('click', openCopy);
+$('btn-copy-close').addEventListener('click', () => $('dlg-copy').close());
+document.querySelectorAll('input[name="copy-kind"]').forEach(r => r.addEventListener('change', () => { $('copy-text').value = copyText(r.value); $('copy-msg').textContent = ''; }));
+$('copy-ack').addEventListener('change', () => { $('btn-copy-do').disabled = !$('copy-ack').checked; });
+$('btn-copy-do').addEventListener('click', doCopy);
+$('btn-hol').addEventListener('click', openHol);
+$('btn-hol-close').addEventListener('click', () => $('dlg-hol').close());
+$('h-year').addEventListener('change', renderHol);
+$('hol-form').addEventListener('submit', addHol);
+$('btn-hol-sync').addEventListener('click', syncHol);
 $('btn-relogin').addEventListener('click', () => location.replace(cleanUrl()));
 $('btn-copy-uid').addEventListener('click', () => {
   navigator.clipboard.writeText($('denied-uid').textContent).then(() => { $('btn-copy-uid').textContent = 'คัดลอกแล้ว'; });
