@@ -132,6 +132,12 @@
   .help table { border-collapse: collapse; width: 100%; }
   .help code { background: var(--bg); padding: 0 4px; border-radius: 4px; }
   .sticky-head { position: sticky; top: -16px; background: var(--card); padding-top: 4px; z-index: 1; }
+  .pill { font-size: 12px; border-radius: 999px; padding: 0 8px; margin-left: 4px; }
+  .pill.on { background: var(--chip-done); color: var(--text); }
+  .pill.off { background: var(--chip-cancel); color: var(--muted); }
+  .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bg); border-radius: 10px; padding: 12px; }
+  .switch-row b { font-size: 16px; }
+  .switch-row button { white-space: nowrap; flex-shrink: 0; }
   .hidden { display: none !important; }
   @media (max-width: 520px) {
     .row2, .row3 { grid-template-columns: 1fr; }
@@ -168,6 +174,7 @@
       <div class="head-btns">
         <button id="btn-dash" title="แผนปีงบประมาณและแดชบอร์ด">แดชบอร์ด</button>
         <button id="btn-hol" title="วันหยุดที่ใช้นับวันทำการ">วันหยุด</button>
+        <button id="btn-notify" class="hidden" title="เปิดหรือปิดการรับแจ้งเตือนกำหนดส่งทาง LINE ของคุณ" aria-haspopup="dialog">แจ้งเตือน LINE</button>
         <button id="btn-mask" title="เปิดเครื่องมือปิดข้อมูลระบุตัวตนในแท็บใหม่">เครื่องมือปิดชื่อ</button>
         <button id="btn-help" title="คู่มือการใช้งาน">คู่มือ</button>
         <button id="btn-refresh" title="โหลดข้อมูลใหม่">โหลดใหม่</button>
@@ -332,6 +339,27 @@
   </div>
 </dialog>
 
+<!-- แจ้งเตือน LINE -->
+<dialog id="dlg-notify">
+  <div class="pane">
+    <h2>แจ้งเตือนกำหนดส่งทาง LINE</h2>
+    <div class="switch-row">
+      <div><b id="n-state">-</b><div class="muted">การตั้งค่านี้มีผลเฉพาะของคุณ</div></div>
+      <button type="button" class="primary" id="btn-notify-toggle">-</button>
+    </div>
+    <div id="n-testonly" class="warn hidden">ช่วงทดสอบระบบ: ตอนนี้ระบบยังส่งแจ้งเตือนถึงผู้ดูแลคนเดียว การตั้งค่าของคุณจะมีผลเมื่อเปิดใช้กับทั้งทีม</div>
+    <div id="n-notready" class="warn hidden">ผู้ดูแลยังตั้งค่าการส่ง LINE ไม่ครบ ระบบจึงยังไม่ส่งแจ้งเตือน</div>
+    <ul class="muted" style="margin:0; padding-left:20px; display:grid; gap:4px">
+      <li>ส่งราว 08:00 ของวันทำการ ถึงผู้รับผิดชอบงาน เมื่องานเหลือไม่เกิน 7 วัน และเมื่อครบกำหนด อย่างละ 1 ครั้ง</li>
+      <li>ข้อความมีแค่จำนวนเรื่อง ไม่มีชื่อหน่วยรับตรวจ ชื่อเรื่อง หรือประเภทงาน</li>
+      <li>ต้องเพิ่มบัญชี LINE ของระบบเป็นเพื่อนก่อน: <a id="n-friend" href="#" target="_blank" rel="noopener noreferrer">เพิ่มเพื่อน</a></li>
+      <li>ห้ามพิมพ์เรื่องงานในแชทของบัญชีนี้ ระบบไม่อ่านและไม่ตอบ</li>
+    </ul>
+    <div><span id="n-err" class="err"></span><span id="n-ok" class="okmsg"></span></div>
+    <div class="actions"><button type="button" id="btn-notify-close">ปิด</button></div>
+  </div>
+</dialog>
+
 <!-- คู่มือ -->
 <dialog id="dlg-help" class="wide">
   <div class="pane help">
@@ -444,6 +472,17 @@
       <li>ช่วงทดลองใช้ข้อมูลสมมุติเท่านั้น จนกว่าได้รับอนุญาตให้ใช้ข้อมูลจริง</li>
       <li>ห้ามบันทึกชื่อหรือข้อมูลที่ระบุตัวบุคคลผู้แจ้งเรื่อง</li>
       <li>ห้ามถ่ายภาพหน้าจอหรือส่งต่อรายการงานออกนอกทีม</li>
+    </ul>
+
+    <h3>14. แจ้งเตือนทาง LINE</h3>
+    <ul>
+      <li>ระบบส่งแจ้งเตือนจากบัญชี LINE ของระบบ ราว 08:00 ของวันทำการ ถึงผู้รับผิดชอบงาน เฉพาะงานที่มีกำหนดส่งและยังไม่เสร็จหรือยกเลิก</li>
+      <li>แจ้งเมื่องานเหลือไม่เกิน 7 วัน (นับตามวิธีนับของงาน) และเมื่อครบกำหนด อย่างละ 1 ครั้งต่องาน ถ้ามีการแก้กำหนดส่ง ระบบจะแจ้งใหม่ตามวันใหม่</li>
+      <li>วันหยุดไม่ส่ง รายการที่เกิดระหว่างวันหยุดจะรวมส่งในวันทำการถัดไป ข้อความรวมทุกงานของคุณเป็นข้อความเดียว</li>
+      <li>งานที่เลยกำหนดแล้วไม่เตือนซ้ำ ดูได้จากสีแดงและสรุปเช้าในแอป</li>
+      <li>ข้อความมีแค่จำนวนเรื่องและลิงก์แอป ไม่มีชื่อหน่วยรับตรวจ ชื่อเรื่อง หรือประเภทงาน</li>
+      <li>ต้องเพิ่มบัญชี LINE ของระบบเป็นเพื่อนก่อน (ลิงก์อยู่ในปุ่ม <b>แจ้งเตือน LINE</b>) เปิดหรือปิดการรับของคุณเองได้ที่ปุ่มเดียวกัน ทุกการเปลี่ยนบันทึกประวัติ</li>
+      <li>บัญชีนี้ใช้ส่งแจ้งเตือนอย่างเดียว ห้ามพิมพ์เรื่องงานในแชทของบัญชีนี้ ระบบไม่อ่านและไม่ตอบ</li>
     </ul>
 
     <p class="muted">ติดปัญหาหรือพบข้อผิดพลาด แจ้งผู้ดูแลระบบ พร้อมข้อความที่ขึ้นบนหน้าจอ</p>
@@ -641,6 +680,8 @@ async function loadApp() {
                      nearDays: d.nearDueDays || 7, maxDays: d.maxDurationDays || 365, idleMin: d.idleMinutes });
   applySnapshot(d);
   $('me-line').textContent = 'ผู้ใช้: ' + d.me.displayName;
+  S.notify = d.notify || null;
+  renderNotifyBtn();
   fillSelect($('f-status'), [{ v: 'OPEN', t: 'งานค้างทั้งหมด' }, { v: '', t: 'ทุกสถานะ' }]
     .concat(S.statuses.map(s => ({ v: s.code, t: s.label }))));
   fillSelect($('f-owner'), [{ v: '', t: 'ทุกคน' }, { v: S.me.memberKey, t: 'งานของฉัน' }]
@@ -662,7 +703,7 @@ async function endSession(text, callServer) {
   if (callServer && S.token) { try { await api('logout'); } catch (e) {} }
   S.token = null; ss.del('kn_s');
   S.tasks = []; S.summaries = {}; $('list').textContent = ''; $('counts').textContent = ''; $('sum-tiles').textContent = '';
-  ['dlg', 'dlg-help', 'dlg-dash', 'dlg-copy', 'dlg-hol'].forEach(id => { if ($(id).open) $(id).close(); });
+  ['dlg', 'dlg-help', 'dlg-dash', 'dlg-copy', 'dlg-hol', 'dlg-notify'].forEach(id => { if ($(id).open) $(id).close(); });
   try { liff.logout(); } catch (e) {}
   showMsg(text, true);
 }
@@ -1117,6 +1158,44 @@ async function syncHol() {
   finally { $('btn-hol-sync').disabled = false; }
 }
 
+/* ---------- แจ้งเตือน LINE (เปิด/ปิดของตัวเอง) ---------- */
+function renderNotifyBtn() {
+  const b = $('btn-notify'), n = S.notify;
+  b.classList.toggle('hidden', !n);
+  if (!n) return;
+  b.textContent = 'แจ้งเตือน LINE';
+  b.appendChild(el('span', 'pill ' + (n.on ? 'on' : 'off'), n.on ? 'เปิด' : 'ปิด'));
+}
+function renderNotifyDlg() {
+  const n = S.notify;
+  $('n-state').textContent = n.on ? 'รับแจ้งเตือน: เปิด' : 'รับแจ้งเตือน: ปิด';
+  $('btn-notify-toggle').textContent = n.on ? 'ปิดการแจ้งเตือน' : 'เปิดการแจ้งเตือน';
+  $('btn-notify-toggle').classList.toggle('primary', !n.on);
+  $('n-testonly').classList.toggle('hidden', !n.testOnly);
+  $('n-notready').classList.toggle('hidden', !!n.ready);
+  const f = $('n-friend');
+  if (n.friendUrl) { f.href = n.friendUrl; f.textContent = n.friendUrl.replace('https://line.me/R/ti/p/', ''); }
+  f.parentElement.classList.toggle('hidden', !n.friendUrl);
+}
+function openNotify() {
+  if (!S.notify) return;
+  $('n-err').textContent = ''; $('n-ok').textContent = '';
+  renderNotifyDlg();
+  $('dlg-notify').showModal();
+}
+async function toggleNotify() {
+  const want = !S.notify.on;
+  $('btn-notify-toggle').disabled = true; $('n-ok').textContent = ''; $('n-err').textContent = 'กำลังบันทึก…';
+  try {
+    const r = await call('setNotify', { on: want });
+    S.notify.on = r.on;
+    $('n-err').textContent = '';
+    $('n-ok').textContent = r.on ? 'เปิดรับแจ้งเตือนแล้ว' : 'ปิดรับแจ้งเตือนแล้ว';
+    renderNotifyDlg(); renderNotifyBtn();
+  } catch (e) { if (e.code !== 'SESSION_EXPIRED') $('n-err').textContent = errText(e); }
+  finally { $('btn-notify-toggle').disabled = false; }
+}
+
 /* ---------- ออกจากระบบอัตโนมัติเมื่อไม่ใช้งาน ---------- */
 ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev =>
   document.addEventListener(ev, () => { S.lastActive = Date.now(); $('idle-warn').classList.add('hidden'); }, { passive: true }));
@@ -1162,6 +1241,13 @@ $('copy-ack').addEventListener('change', () => { $('btn-copy-do').disabled = !$(
 $('btn-copy-do').addEventListener('click', doCopy);
 $('btn-hol').addEventListener('click', openHol);
 $('btn-hol-close').addEventListener('click', () => $('dlg-hol').close());
+$('btn-notify').addEventListener('click', openNotify);
+$('btn-notify-toggle').addEventListener('click', toggleNotify);
+$('btn-notify-close').addEventListener('click', () => $('dlg-notify').close());
+$('n-friend').addEventListener('click', ev => {
+  // ในแอป LINE เปิดลิงก์เพิ่มเพื่อนด้วย LINE เอง
+  try { if (window.liff && liff.isInClient()) { ev.preventDefault(); liff.openWindow({ url: S.notify.friendUrl, external: false }); } } catch (e) {}
+});
 $('h-year').addEventListener('change', renderHol);
 $('hol-form').addEventListener('submit', addHol);
 $('btn-hol-sync').addEventListener('click', syncHol);
