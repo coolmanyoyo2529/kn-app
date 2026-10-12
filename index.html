@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
-<title>ทะเบียนคุมงาน</title>
+<title>ทะเบียนติดตามงาน</title>
 <style>
   :root {
     --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #5d6677; --line: #dde1e8;
@@ -138,6 +138,7 @@
   .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bg); border-radius: 10px; padding: 12px; }
   .switch-row b { font-size: 16px; }
   .switch-row button { white-space: nowrap; flex-shrink: 0; }
+  .notice.warnbar { border-left-color: var(--today); background: var(--today-bg); }
   .hidden { display: none !important; }
   @media (max-width: 520px) {
     .row2, .row3 { grid-template-columns: 1fr; }
@@ -151,7 +152,7 @@
 
   <!-- กำลังโหลด / ข้อความ -->
   <section id="screen-msg" class="center">
-    <h1>ทะเบียนคุมงาน</h1>
+    <h1>ทะเบียนติดตามงาน</h1>
     <p id="msg-text" class="muted">กำลังตรวจสอบการเข้าสู่ระบบ…</p>
     <button id="btn-relogin" class="primary hidden">เข้าสู่ระบบด้วย LINE</button>
   </section>
@@ -168,7 +169,7 @@
   <section id="screen-app" class="hidden">
     <header>
       <div>
-        <h1>ทะเบียนคุมงาน</h1>
+        <h1>ทะเบียนติดตามงาน</h1>
         <div class="muted" id="me-line"></div>
       </div>
       <div class="head-btns">
@@ -182,6 +183,9 @@
       </div>
     </header>
 
+    <div id="testmode-bar" class="notice warnbar hidden" role="status">
+      <b>โหมดทดสอบ:</b> ระบบส่งแจ้งเตือน LINE เฉพาะผู้ดูแลคนเดียว สมาชิกคนอื่นยังไม่ได้รับแจ้งเตือนจริง ดูกำหนดส่งจากสีเตือนในแอป
+    </div>
     <div id="idle-warn" class="notice hidden">จะออกจากระบบอัตโนมัติในอีก 1 นาที หากไม่มีการใช้งาน</div>
 
     <section class="summary" aria-label="สรุปงาน">
@@ -462,7 +466,7 @@
     <ul>
       <li>กดปุ่ม <b>เครื่องมือปิดชื่อ</b> ที่มุมขวาบน ระบบเปิดเครื่องมือในแท็บใหม่ ถ้าเปิดจากแอป LINE จะเปิดในเบราว์เซอร์ของเครื่องแทน</li>
       <li>ใช้แทนชื่อบุคคล ผู้ขาย เลขบัตร เลขบัญชี ในไฟล์ .xlsx .xls .csv ด้วยรหัส แล้วเปิดรหัสกลับเมื่อได้ผลลัพธ์</li>
-      <li>ไฟล์ประมวลผลในเครื่องของคุณเท่านั้น หน้านี้ถูกล็อกไม่ให้ส่งข้อมูลออกอินเทอร์เน็ต และไม่เกี่ยวกับข้อมูลในทะเบียนคุมงาน</li>
+      <li>ไฟล์ประมวลผลในเครื่องของคุณเท่านั้น หน้านี้ถูกล็อกไม่ให้ส่งข้อมูลออกอินเทอร์เน็ต และไม่เกี่ยวกับข้อมูลในทะเบียนติดตามงาน</li>
       <li>ได้ 2 ไฟล์: <code>_ปิดชื่อ</code> และ <code>_กุญแจ</code> ไฟล์กุญแจเป็นความลับระดับเดียวกับต้นฉบับ เก็บในเครื่องเท่านั้น</li>
       <li>แนะนำใช้บนคอมพิวเตอร์ ดูวิธีใช้ละเอียดได้ที่แท็บ "วิธีใช้" ในเครื่องมือ</li>
     </ul>
@@ -484,6 +488,34 @@
       <li>ต้องเพิ่มบัญชี LINE ของระบบเป็นเพื่อนก่อน (ลิงก์อยู่ในปุ่ม <b>แจ้งเตือน LINE</b>) เปิดหรือปิดการรับของคุณเองได้ที่ปุ่มเดียวกัน ทุกการเปลี่ยนบันทึกประวัติ</li>
       <li>บัญชีนี้ใช้ส่งแจ้งเตือนอย่างเดียว ห้ามพิมพ์เรื่องงานในแชทของบัญชีนี้ ระบบไม่อ่านและไม่ตอบ</li>
     </ul>
+
+    <h3>15. สำหรับผู้ดูแลระบบ: สมาชิกเข้า-ออก และเปิดใช้แจ้งเตือน</h3>
+    <p class="muted" style="margin:0">ทำในหน้า Google Sheet และหน้า Apps Script ของเจ้าของระบบ สมาชิกทั่วไปไม่ต้องทำ</p>
+    <b>นำสมาชิกออก (ย้ายหน่วย ลาออก)</b>
+    <ol>
+      <li>โอนงานค้างของคนนั้นให้ผู้อื่นในแอป (แก้ช่องผู้รับผิดชอบ)</li>
+      <li>แผ่น Members แก้ <code>active</code> เป็น <code>N</code> ห้ามลบแถว และห้ามใช้ช่อง <code>notify</code> แทนการนำออก</li>
+      <li>รันฟังก์ชัน <code>applyMemberChanges</code> ระบบลงประวัติ ตัดการเข้าระบบทุกคนทันที และแจ้งถ้ายังมีงานค้างที่ไม่มีผู้รับผิดชอบ</li>
+      <li>ตรวจว่าบันทึกขึ้น "ไม่มีงานค้างที่ไม่มีผู้รับผิดชอบ"</li>
+    </ol>
+    <b>เพิ่มสมาชิกใหม่</b>
+    <ol>
+      <li>เพิ่มแถวใหม่ท้ายแผ่น ใช้รหัสถัดจากรหัสสูงสุดเสมอ (M6, M7, …) ห้ามใช้รหัสเดิมของคนที่ออกไป</li>
+      <li>รันฟังก์ชัน <code>applyMemberChanges</code></li>
+    </ol>
+    <b>สมาชิกทำมือถือหายหรือเปลี่ยนบัญชี LINE</b>
+    <ol>
+      <li>แก้ <code>active</code> เป็น <code>N</code> ไว้ก่อน แล้วรัน <code>applyMemberChanges</code> เพื่อตัดการเข้าระบบทันที</li>
+      <li>ได้รหัสผู้ใช้ LINE ใหม่แล้ว ใส่ในแถวเดิม ตั้ง <code>active</code> เป็น <code>Y</code> แล้วรัน <code>applyMemberChanges</code> อีกครั้ง</li>
+    </ol>
+    <b>ก่อนเปิดใช้แจ้งเตือนกับทั้งทีม</b>
+    <ol>
+      <li>ยกเลิกหรือแก้งานตัวอย่าง (ข้อมูลสมมุติ) ที่ไม่ต้องการให้แจ้งเตือน</li>
+      <li>รัน <code>clearNotifyHistory</code> ล้างประวัติการส่งช่วงทดสอบ</li>
+      <li>รัน <code>previewNotifyLive</code> ตรวจว่าใครจะได้แจ้งเตือนกี่เรื่อง (ไม่ส่งจริง)</li>
+      <li>รัน <code>setNotifyLive</code> แล้วตรวจว่าแถบ "โหมดทดสอบ" หายไปจากแอป</li>
+      <li>วันทำการถัดไปหลัง 08:15 ตรวจผลการส่งรอบแรกในบันทึกการดำเนินการ</li>
+    </ol>
 
     <p class="muted">ติดปัญหาหรือพบข้อผิดพลาด แจ้งผู้ดูแลระบบ พร้อมข้อความที่ขึ้นบนหน้าจอ</p>
   </div>
@@ -517,6 +549,7 @@ const ERR = {
   DUPLICATE: 'มีรายการนี้อยู่แล้ว',
   HOLIDAY_CONFLICT: 'วันนี้มีรายการตรงข้ามอยู่แล้ว (วันหยุด / ไม่ใช่วันหยุด) ลบรายการเดิมก่อน',
   HOLIDAY_FETCH_FAILED: 'ดึงวันหยุดจาก Google ไม่สำเร็จ ลองใหม่ภายหลัง หรือเพิ่มวันหยุดเอง',
+  MEMBER_DUPLICATE: 'พบรหัสสมาชิกหรือรหัส LINE ซ้ำในรายชื่อผู้ใช้ ระบบหยุดให้บริการไว้ก่อน แจ้งผู้ดูแลระบบ',
   SERVER_ERROR: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์'
 };
 const FIELD_TH = { category: 'ประเภทงาน', auditee: 'หน่วยรับตรวจ', title: 'ชื่อเรื่อง', ownerKey: 'ผู้รับผิดชอบ',
@@ -1162,6 +1195,7 @@ async function syncHol() {
 function renderNotifyBtn() {
   const b = $('btn-notify'), n = S.notify;
   b.classList.toggle('hidden', !n);
+  $('testmode-bar').classList.toggle('hidden', !(n && n.testMode));
   if (!n) return;
   b.textContent = 'แจ้งเตือน LINE';
   b.appendChild(el('span', 'pill ' + (n.on ? 'on' : 'off'), n.on ? 'เปิด' : 'ปิด'));

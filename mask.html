@@ -183,7 +183,7 @@ ul.sum{margin:8px 0 0;padding-left:20px}
     <ol>
       <li>ครั้งแรกตั้งรหัสผ่านอย่างน้อย 8 ตัว ครั้งต่อไปใส่รหัสผ่านเดิมเพื่อปลดล็อก</li>
       <li>กรอกชื่อหน่วยรับตรวจ และ/หรือ ชื่อเรื่อง แล้วกด <b>สร้างรหัสและบันทึก</b> ระบบออกรหัสต่อจากเลขล่าสุดให้เอง</li>
-      <li>คัดลอกรหัสไปกรอกในทะเบียนคุมงาน โดยติ๊ก "ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง"</li>
+      <li>คัดลอกรหัสไปกรอกในทะเบียนติดตามงาน โดยติ๊ก "ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง"</li>
       <li>ภายหลังค้นหาได้ว่ารหัสไหนคือชื่ออะไร หรือกด <b>ใช้เปิดรหัสในแท็บ ②</b> เพื่อแปลงรหัสในข้อความกลับเป็นชื่อจริง</li>
     </ol>
     <ul>
@@ -506,7 +506,7 @@ $('#genBtn').addEventListener('click',async()=>{
     row.innerHTML='<span>'+lbl+': <b><code>'+esc(c)+'</code></b></span>'; const b=document.createElement('button'); b.className='ghost'; b.textContent='คัดลอก';
     b.addEventListener('click',()=>copyText(c,b)); row.appendChild(b); gr.appendChild(row); });
   const n=document.createElement('p'); n.className='note'; n.style.margin='6px 0 0';
-  n.textContent='บันทึกแล้ว นำรหัสไปกรอกในทะเบียนคุมงาน โดยติ๊ก "ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง"'; gr.appendChild(n);
+  n.textContent='บันทึกแล้ว นำรหัสไปกรอกในทะเบียนติดตามงาน โดยติ๊ก "ใช้รหัสแทนชื่อหน่วยรับตรวจและชื่อเรื่อง"'; gr.appendChild(n);
   gr.classList.remove('hidden');
 });
 
@@ -519,7 +519,7 @@ function renderReg(){
   tb.innerHTML=rows.length?rows.map(x=>`<tr><td><code>${esc(x.code)}</code></td><td>${esc(x.auditee||'-')}</td><td>${x.title?'<code>'+esc(x.titleCode)+'</code>':'-'}</td><td>${esc(x.title||'-')}</td><td>${thDate(x.created)}</td><td><button class="ghost delBtn" data-code="${esc(x.code)}">ลบ</button></td></tr>`).join('')
     :'<tr><td colspan="6" class="note">'+(reg.items.length?'ไม่พบรายการที่ค้นหา':'ยังไม่มีรหัส สร้างรหัสแรกได้ที่ข้อ 2')+'</td></tr>';
   tb.querySelectorAll('.delBtn').forEach(b=>b.addEventListener('click',async()=>{
-    const c=b.dataset.code; if(!confirm('ลบรหัส '+c+' ออกจากทะเบียน?\nถ้ายังใช้รหัสนี้อยู่ในทะเบียนคุมงาน จะเปิดกลับเป็นชื่อจริงไม่ได้อีก')) return;
+    const c=b.dataset.code; if(!confirm('ลบรหัส '+c+' ออกจากทะเบียน?\nถ้ายังใช้รหัสนี้อยู่ในทะเบียนติดตามงาน จะเปิดกลับเป็นชื่อจริงไม่ได้อีก')) return;
     reg.items=reg.items.filter(x=>x.code!==c); await saveReg(); renderReg();
   }));
   $('#backupNote').textContent=reg.lastBackup
