@@ -139,6 +139,16 @@
   .switch-row b { font-size: 16px; }
   .switch-row button { white-space: nowrap; flex-shrink: 0; }
   .notice.warnbar { border-left-color: var(--today); background: var(--today-bg); }
+
+  /* ไฟล์จากกลุ่ม LINE (ระยะ 4) */
+  .flist { display: grid; gap: 8px; }
+  .frow { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; background: var(--bg); }
+  .frow .fname { font-weight: 600; overflow-wrap: anywhere; }
+  .frow .meta { color: var(--muted); font-size: 14px; display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; }
+  .frow .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .frow .acts select { padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); max-width: 100%; min-width: 0; flex: 1 1 220px; }
+  .pick-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pick-row select { flex: 1 1 220px; }
   .hidden { display: none !important; }
   @media (max-width: 520px) {
     .row2, .row3 { grid-template-columns: 1fr; }
@@ -175,6 +185,7 @@
       <div class="head-btns">
         <button id="btn-dash" title="แผนปีงบประมาณและแดชบอร์ด">แดชบอร์ด</button>
         <button id="btn-hol" title="วันหยุดที่ใช้นับวันทำการ">วันหยุด</button>
+        <button id="btn-files" class="hidden" title="ไฟล์ PDF ที่ส่งในกลุ่ม LINE ของทีม" aria-haspopup="dialog">ไฟล์จากกลุ่ม</button>
         <button id="btn-notify" class="hidden" title="เปิดหรือปิดการรับแจ้งเตือนกำหนดส่งทาง LINE ของคุณ" aria-haspopup="dialog">แจ้งเตือน LINE</button>
         <button id="btn-mask" title="เปิดเครื่องมือปิดข้อมูลระบุตัวตนในแท็บใหม่">เครื่องมือปิดชื่อ</button>
         <button id="btn-help" title="คู่มือการใช้งาน">คู่มือ</button>
@@ -247,6 +258,16 @@
         <label id="wrap-count">นับแบบ <select id="t-countmode"></select></label>
       </div>
       <div id="due-preview" class="preview hidden"></div>
+    </fieldset>
+
+    <fieldset id="t-files" class="hidden">
+      <legend>ไฟล์จากกลุ่ม LINE</legend>
+      <div id="t-files-list" class="flist"></div>
+      <div class="pick-row">
+        <select id="t-file-pick" class="f" aria-label="เลือกไฟล์ที่ยังไม่ผูกงาน"></select>
+        <button type="button" id="btn-file-link">ผูกไฟล์</button>
+      </div>
+      <div><span id="t-files-err" class="err"></span><span id="t-files-ok" class="okmsg"></span></div>
     </fieldset>
 
     <div id="t-info" class="muted"></div>
@@ -361,6 +382,28 @@
     </ul>
     <div><span id="n-err" class="err"></span><span id="n-ok" class="okmsg"></span></div>
     <div class="actions"><button type="button" id="btn-notify-close">ปิด</button></div>
+  </div>
+</dialog>
+
+<!-- ไฟล์จากกลุ่ม LINE (ระยะ 4) -->
+<dialog id="dlg-files" class="wide">
+  <div class="pane">
+    <div class="pane-head sticky-head">
+      <h2>ไฟล์จากกลุ่ม LINE</h2>
+      <div class="head-btns">
+        <select id="fl-filter" class="f" aria-label="กรองไฟล์" style="width:auto">
+          <option value="">ทุกไฟล์</option>
+          <option value="FREE">ยังไม่ผูกงาน</option>
+          <option value="LINKED">ผูกงานแล้ว</option>
+        </select>
+        <button type="button" id="btn-files-reload">โหลดใหม่</button>
+        <button type="button" id="btn-files-close">ปิด</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0">ไฟล์ PDF ที่ส่งในกลุ่ม LINE ของทีม เก็บ 15 วันทำการ (วันที่ 1 = วันทำการถัดจากวันที่รับ) แล้วระบบลบถาวร กู้คืนไม่ได้
+      · ไฟล์ที่ผูกกับงานที่ใช้รหัสแทนชื่อ จะแสดงเป็นรหัสไฟล์ · ทุกการเปิด ผูก และยกเลิกการผูก บันทึกประวัติ</p>
+    <div><span id="fl-err" class="err"></span><span id="fl-ok" class="okmsg"></span></div>
+    <div id="fl-list" class="flist"></div>
   </div>
 </dialog>
 
@@ -530,6 +573,27 @@
       <li>วันทำการถัดไปหลัง 08:15 ตรวจผลการส่งรอบแรกในบันทึกการดำเนินการ</li>
     </ol>
 
+    <h3>16. ไฟล์จากกลุ่ม LINE</h3>
+    <ul>
+      <li>บัญชี LINE ของระบบอยู่ในกลุ่ม LINE ของทีม และเก็บเฉพาะ<b>ไฟล์ PDF ขนาดไม่เกิน 10 MB</b> ที่ส่งในกลุ่มนั้น ข้อความ รูป สติกเกอร์ และไฟล์ชนิดอื่น ระบบไม่เก็บ</li>
+      <li>ส่งเป็นไฟล์ .pdf (เมนู ไฟล์ ในแชท) ไม่ใช่ภาพถ่ายเอกสาร ไฟล์จะขึ้นในแอปภายใน 1–2 นาที กด <b>โหลดใหม่</b> เพื่อดู</li>
+      <li>กดปุ่ม <b>ไฟล์จากกลุ่ม</b> ที่มุมขวาบน ตัวเลขบนปุ่มคือจำนวนไฟล์ที่ยังไม่ผูกงาน กด <b>เปิดไฟล์</b> เพื่อดู หรือ <b>ผูกกับงาน</b> แล้วเลือกงาน</li>
+      <li>ในฟอร์มงาน ส่วน <b>ไฟล์จากกลุ่ม LINE</b> แสดงไฟล์ที่ผูกกับงานนั้น เลือกไฟล์ที่ยังไม่ผูกแล้วกด <b>ผูกไฟล์</b> ได้เช่นกัน ไฟล์ 1 ไฟล์ผูกได้ 1 งาน ผูกผิดให้กด <b>ยกเลิกการผูก</b> แล้วผูกใหม่</li>
+      <li>ระบบเก็บไฟล์ <b>15 วันทำการ</b> (วันที่ 1 = วันทำการถัดจากวันที่รับ) แล้วลบถาวรราว 06:00 ของวันถัดไป กู้คืนไม่ได้ ถ้าต้องเก็บเป็นหลักฐาน ให้จัดเก็บตามระบบงานของสำนักงาน</li>
+      <li>ไฟล์ที่ผูกกับงานที่ใช้รหัสแทนชื่อ แสดงเป็นรหัสไฟล์ เช่น <code>F-691015-01</code> แทนชื่อไฟล์เดิมทุกหน้าจอ ชื่อไฟล์ที่มีคำต้องห้ามจะแสดงเป็น •••</li>
+      <li>ทุกการเปิด ผูก และยกเลิกการผูกไฟล์ ระบบบันทึกประวัติว่าใคร เมื่อไร ไฟล์รหัสใด (ไม่บันทึกชื่อไฟล์)</li>
+      <li>เปิดไฟล์แล้ว ไฟล์จะอยู่ในเครื่องที่เปิด ใช้เครื่องของสำนักงาน ลบออกเมื่อใช้เสร็จ ห้ามส่งต่อนอกทีมหรือเข้าเครื่องมือ AI ถ้าเปิดในแอป LINE บนมือถือไม่ขึ้น ให้เปิดแอปนี้ในเบราว์เซอร์ของคอมพิวเตอร์</li>
+      <li>ตามการทำงานของ LINE บัญชีของระบบได้รับทุกข้อความในกลุ่ม (ระบบทิ้งทันที ไม่เก็บ) ใช้กลุ่มนี้คุยเรื่องงานตามปกติ และอย่าเชิญบัญชีของระบบเข้ากลุ่มอื่น ระบบจะออกจากกลุ่มอื่นเอง</li>
+    </ul>
+    <b>สำหรับผู้ดูแลระบบ: ตั้งค่าการรับไฟล์ (ทำครั้งเดียว)</b>
+    <ol>
+      <li>หน้า Apps Script รัน <code>setup</code> ระบบสร้างแผ่น Files และโฟลเดอร์เก็บไฟล์</li>
+      <li>รัน <code>newWebhookKey</code> แล้วนำ URL webhook ไปใส่ใน LINE Developers ตามที่บันทึกการดำเนินการบอก</li>
+      <li>รัน <code>captureGroupId</code> แล้วภายใน 10 นาที เชิญบัญชีของระบบเข้ากลุ่มงานของทีม หรือพิมพ์ข้อความใดก็ได้ในกลุ่มนั้น</li>
+      <li>รัน <code>showFilesStatus</code> ต้องเห็น รหัส webhook / token LINE / รหัสกลุ่มทีม "ตั้งแล้ว" และโฟลเดอร์เก็บไฟล์ "พร้อม"</li>
+      <li>ถ้าสงสัยว่า URL webhook รั่ว รัน <code>newWebhookKey</code> ใหม่ แล้วแก้ URL ใน LINE Developers ทันที</li>
+    </ol>
+
     <p class="muted">ติดปัญหาหรือพบข้อผิดพลาด แจ้งผู้ดูแลระบบ พร้อมข้อความที่ขึ้นบนหน้าจอ</p>
   </div>
 </dialog>
@@ -563,6 +627,9 @@ const ERR = {
   HOLIDAY_CONFLICT: 'วันนี้มีรายการตรงข้ามอยู่แล้ว (วันหยุด / ไม่ใช่วันหยุด) ลบรายการเดิมก่อน',
   HOLIDAY_FETCH_FAILED: 'ดึงวันหยุดจาก Google ไม่สำเร็จ ลองใหม่ภายหลัง หรือเพิ่มวันหยุดเอง',
   MEMBER_DUPLICATE: 'พบรหัสสมาชิกหรือรหัส LINE ซ้ำในรายชื่อผู้ใช้ ระบบหยุดให้บริการไว้ก่อน แจ้งผู้ดูแลระบบ',
+  FILE_GONE: 'ไฟล์นี้ถูกลบแล้ว (ครบกำหนดเก็บ) ระบบโหลดรายการใหม่ให้แล้ว',
+  FILE_LINKED: 'ไฟล์นี้ผูกกับงานอื่นอยู่แล้ว ยกเลิกการผูกเดิมก่อน',
+  DRIVE_ERROR: 'อ่านไฟล์จากที่เก็บไม่สำเร็จ ลองใหม่ภายหลัง ถ้ายังไม่ได้แจ้งผู้ดูแลระบบ',
   SERVER_ERROR: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์'
 };
 const FIELD_TH = { category: 'ประเภทงาน', auditee: 'หน่วยรับตรวจ', title: 'ชื่อเรื่อง', ownerKey: 'ผู้รับผิดชอบ',
@@ -574,7 +641,7 @@ const TH_DOW = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
 
 const S = { token: null, me: null, statuses: [], closed: ['DONE', 'CANCELLED'], categories: [], members: [], tasks: [], today: '',
             dueModes: [], countModes: [], dueBases: [], nearDays: 7, maxDays: 365, holidays: [], hol: {}, plans: [], summaries: {},
-            sumTab: 'AM', idFilter: null,
+            sumTab: 'AM', idFilter: null, files: [], filesOn: false,
             idleMin: 15, lastActive: Date.now(), lastPing: Date.now(), editing: null };
 const $ = id => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -743,13 +810,15 @@ async function loadApp() {
   S.lastActive = Date.now();
   show('screen-app');
   render();
+  loadFiles().then(render);
 }
 
 async function endSession(text, callServer) {
   if (callServer && S.token) { try { await api('logout'); } catch (e) {} }
   S.token = null; ss.del('kn_s');
   S.tasks = []; S.summaries = {}; $('list').textContent = ''; $('counts').textContent = ''; $('sum-tiles').textContent = '';
-  ['dlg', 'dlg-help', 'dlg-dash', 'dlg-copy', 'dlg-hol', 'dlg-notify'].forEach(id => { if ($(id).open) $(id).close(); });
+  S.files = []; S.filesOn = false; $('fl-list').textContent = ''; $('t-files-list').textContent = ''; renderFilesBtn();
+  ['dlg', 'dlg-help', 'dlg-dash', 'dlg-copy', 'dlg-hol', 'dlg-notify', 'dlg-files'].forEach(id => { if ($(id).open) $(id).close(); });
   try { liff.logout(); } catch (e) {}
   showMsg(text, true);
 }
@@ -809,8 +878,10 @@ function render() {
     if (ds) meta.appendChild(el('span', 'due ' + ds.cls, ds.text));
     let dueTxt = t.dueDate ? 'กำหนดส่ง: ' + thDate(t.dueDate, true) : '';
     if (t.dueDate && t.dueMode === 'DAYS') dueTxt += ' (' + t.durationDays + ' ' + countLabel(t.countMode) + ')';
+    const nf = S.files.filter(f => f.taskId === t.id).length;
     [catLabel(t.category), 'ผู้รับผิดชอบ: ' + memberName(t.ownerKey), dueTxt]
       .concat(t.doneDate ? ['เสร็จ: ' + thDate(t.doneDate)] : [])
+      .concat(nf ? ['ไฟล์ ' + nf] : [])
       .filter(Boolean).forEach(x => meta.appendChild(el('span', '', x)));
     card.append(top, el('div', 'title', t.title || '(ไม่ระบุชื่อเรื่อง)'), meta);
     card.addEventListener('click', () => openForm(t));
@@ -859,7 +930,7 @@ function renderSummary() {
 }
 
 async function refresh() {
-  try { applySnapshot(await call('listTasks')); render(); }
+  try { applySnapshot(await call('listTasks')); await loadFiles(); render(); }
   catch (e) { if (e.code !== 'SESSION_EXPIRED') alert(errText(e)); }
 }
 
@@ -921,8 +992,10 @@ function openForm(task) {
       ' · แก้ไขล่าสุดโดย ' + memberName(task.updatedBy)
     : '';
   $('t-err').textContent = '';
+  $('t-files-err').textContent = ''; $('t-files-ok').textContent = '';
   updateMaskedUi();
   updateDueUi();
+  renderTaskFiles();
   $('dlg').showModal();
 }
 
@@ -1204,6 +1277,190 @@ async function syncHol() {
   finally { $('btn-hol-sync').disabled = false; }
 }
 
+/* ---------- ไฟล์จากกลุ่ม LINE (ระยะ 4) ---------- */
+/** โหลดรายการไฟล์ · เซิร์ฟเวอร์รุ่นเก่ายังไม่มีคำสั่งนี้ (BAD_REQUEST) = ซ่อนส่วนไฟล์ · ข้อผิดพลาดอื่นคงรายการเดิม */
+async function loadFiles() {
+  try {
+    const r = await call('listFiles');
+    S.files = r.files || []; S.filesOn = true;
+  } catch (e) {
+    if (e.code === 'BAD_REQUEST') { S.files = []; S.filesOn = false; }
+  }
+  renderFilesBtn();
+}
+function setFiles(files) {
+  S.files = files || [];
+  renderFilesBtn();
+  if ($('dlg-files').open) renderFilesDlg();
+  if ($('dlg').open) renderTaskFiles();
+  render();
+}
+const MASKED_LINK_MSG = id => 'งานนี้ใช้รหัสแทนชื่อ หลังผูกแล้ว ไฟล์จะแสดงเป็น ' + id + ' แทนชื่อไฟล์เดิมทุกหน้าจอ\nผูกต่อหรือไม่?';
+const fmtSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+const taskById = id => S.tasks.find(t => t.id === id);
+const taskShort = t => {
+  const s = t.id + ' · ' + [t.auditee, t.title].filter(Boolean).join(' · ');
+  return s.length > 70 ? s.slice(0, 69) + '…' : s;
+};
+/** ข้อความวันเก็บไฟล์: {cls, text} */
+function keepState(f) {
+  const r = remaining(S.today, f.keepUntil, 'WORK', S.hol);
+  if (r <= 0) return { cls: 'today', text: 'วันสุดท้าย ลบพรุ่งนี้เช้า' };
+  return { cls: r <= 3 ? 'near' : 'ok', text: 'เก็บถึง ' + thDate(f.keepUntil, true) + ' (อีก ' + r + ' วันทำการ)' };
+}
+function renderFilesBtn() {
+  const b = $('btn-files');
+  b.classList.toggle('hidden', !S.filesOn);
+  b.textContent = 'ไฟล์จากกลุ่ม';
+  const free = S.files.filter(f => !f.taskId).length;
+  if (free) { const p = el('span', 'pill on', free); p.title = 'ยังไม่ผูกงาน ' + free + ' ไฟล์'; b.appendChild(p); }
+}
+
+/** ดาวน์โหลดไฟล์ (หลังตรวจ session ที่เซิร์ฟเวอร์) แล้วให้เบราว์เซอร์เปิด/บันทึก */
+async function openFile(f, errEl, okEl) {
+  errEl.textContent = 'กำลังเปิดไฟล์…'; okEl.textContent = '';
+  try {
+    const r = await call('getFile', { fileId: f.fileId });
+    const bin = atob(r.file.base64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (r.file.name || r.file.fileId).replace(/[\\/:*?"<>|]/g, '_').replace(/(\.pdf)?$/i, '.pdf');
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    errEl.textContent = '';
+    okEl.textContent = 'เปิด ' + f.fileId + ' แล้ว ถ้าไม่ขึ้น ให้เปิดแอปนี้ในเบราว์เซอร์ของคอมพิวเตอร์';
+  } catch (e) {
+    if (e.code === 'SESSION_EXPIRED') return;
+    errEl.textContent = errText(e);
+    if (e.code === 'FILE_GONE' || e.code === 'NOT_FOUND') { await loadFiles(); setFiles(S.files); }
+  }
+}
+async function linkFile(fileId, taskId, errEl, okEl) {
+  errEl.textContent = 'กำลังบันทึก…'; okEl.textContent = '';
+  try {
+    const r = await call('linkFile', { fileId: fileId, taskId: taskId });
+    errEl.textContent = ''; okEl.textContent = 'ผูก ' + fileId + ' กับงาน ' + taskId + ' แล้ว';
+    setFiles(r.files);
+  } catch (e) {
+    if (e.code === 'SESSION_EXPIRED') return;
+    errEl.textContent = errText(e);
+    if (['FILE_GONE', 'FILE_LINKED', 'NOT_FOUND'].includes(e.code)) { await loadFiles(); setFiles(S.files); }
+  }
+}
+async function unlinkFile(f, errEl, okEl) {
+  if (!confirm('ยกเลิกการผูกไฟล์ ' + f.fileId + ' กับงาน ' + f.taskId + '?\nไฟล์ยังอยู่ในระบบจนครบกำหนดเก็บ')) return;
+  errEl.textContent = 'กำลังบันทึก…'; okEl.textContent = '';
+  try {
+    const r = await call('unlinkFile', { fileId: f.fileId });
+    errEl.textContent = ''; okEl.textContent = 'ยกเลิกการผูก ' + f.fileId + ' แล้ว';
+    setFiles(r.files);
+  } catch (e) {
+    if (e.code === 'SESSION_EXPIRED') return;
+    errEl.textContent = errText(e);
+    if (e.code === 'FILE_GONE' || e.code === 'NOT_FOUND') { await loadFiles(); setFiles(S.files); }
+  }
+}
+
+/** หนึ่งแถวไฟล์ · inTask = แสดงในฟอร์มงาน (ไม่ต้องบอกชื่องานซ้ำ) */
+function fileRow(f, inTask, errEl, okEl) {
+  const row = el('div', 'frow');
+  const name = el('div', 'fname', f.name);
+  if (f.name !== f.fileId) name.appendChild(el('span', 'badge', f.fileId));
+  const meta = el('div', 'meta');
+  const ks = keepState(f);
+  meta.append(el('span', '', 'รับ ' + thDate(f.receivedDate, true)), el('span', '', fmtSize(f.size)), el('span', 'due ' + ks.cls, ks.text));
+  if (!inTask) {
+    const t = f.taskId && taskById(f.taskId);
+    meta.appendChild(el('span', '', f.taskId ? 'งาน: ' + (t ? taskShort(t) : f.taskId) : 'ยังไม่ผูกงาน'));
+  }
+  const acts = el('div', 'acts');
+  const bOpen = el('button', 'small', 'เปิดไฟล์'); bOpen.type = 'button';
+  bOpen.addEventListener('click', () => openFile(f, errEl, okEl));
+  acts.appendChild(bOpen);
+  if (f.taskId) {
+    const bUn = el('button', 'small', 'ยกเลิกการผูก'); bUn.type = 'button';
+    bUn.addEventListener('click', () => unlinkFile(f, errEl, okEl));
+    acts.appendChild(bUn);
+    const t = taskById(f.taskId);
+    if (!inTask && t) {
+      const bGo = el('button', 'small', 'ดูงาน'); bGo.type = 'button';
+      bGo.addEventListener('click', () => { $('dlg-files').close(); openForm(t); });
+      acts.appendChild(bGo);
+    }
+  } else if (!inTask) {
+    const bLink = el('button', 'small', 'ผูกกับงาน'); bLink.type = 'button';
+    bLink.addEventListener('click', () => {
+      acts.textContent = '';
+      const sel = el('select'); sel.setAttribute('aria-label', 'เลือกงานที่จะผูก ' + f.fileId);
+      const opts = S.tasks.filter(t => t.status !== 'CANCELLED')
+        .sort((a, b) => isClosed(a) - isClosed(b) || b.id.localeCompare(a.id))
+        .map(t => ({ v: t.id, t: taskShort(t) + (isClosed(t) ? ' (' + statusLabel(t.status) + ')' : '') }));
+      fillSelect(sel, [{ v: '', t: '— เลือกงาน —' }].concat(opts));
+      const bOk = el('button', 'small primary', 'ผูก'); bOk.type = 'button';
+      bOk.addEventListener('click', () => {
+        if (!sel.value) { errEl.textContent = 'เลือกงานก่อน'; return; }
+        const t = taskById(sel.value);
+        if (t && t.masked && !confirm(MASKED_LINK_MSG(f.fileId))) return;
+        linkFile(f.fileId, sel.value, errEl, okEl);
+      });
+      const bNo = el('button', 'small', 'ยกเลิก'); bNo.type = 'button';
+      bNo.addEventListener('click', renderFilesDlg);
+      acts.append(sel, bOk, bNo);
+      sel.focus();
+    });
+    acts.appendChild(bLink);
+  }
+  row.append(name, meta, acts);
+  return row;
+}
+
+function renderFilesDlg() {
+  const fv = $('fl-filter').value, list = $('fl-list');
+  list.textContent = '';
+  const rows = S.files.filter(f => !fv || (fv === 'FREE' ? !f.taskId : !!f.taskId));
+  if (!rows.length) { list.appendChild(el('div', 'empty', S.files.length ? 'ไม่มีไฟล์ตามเงื่อนไขที่เลือก' : 'ยังไม่มีไฟล์ ส่งไฟล์ PDF ในกลุ่ม LINE ของทีม แล้วกดโหลดใหม่')); return; }
+  rows.forEach(f => list.appendChild(fileRow(f, false, $('fl-err'), $('fl-ok'))));
+}
+async function openFilesDlg() {
+  $('fl-err').textContent = ''; $('fl-ok').textContent = '';
+  renderFilesDlg();
+  $('dlg-files').showModal();
+  await reloadFiles();
+}
+async function reloadFiles() {
+  $('btn-files-reload').disabled = true;
+  try { await loadFiles(); setFiles(S.files); }
+  finally { $('btn-files-reload').disabled = false; }
+}
+
+/** ส่วนไฟล์ในฟอร์มงาน (เฉพาะตอนแก้งานที่มีอยู่แล้ว) */
+function renderTaskFiles() {
+  const t = S.editing;
+  $('t-files').classList.toggle('hidden', !(S.filesOn && t));
+  if (!S.filesOn || !t) return;
+  const errEl = $('t-files-err'), okEl = $('t-files-ok');
+  const list = $('t-files-list'); list.textContent = '';
+  const linked = S.files.filter(f => f.taskId === t.id);
+  if (!linked.length) list.appendChild(el('div', 'muted', 'ยังไม่มีไฟล์ที่ผูกกับงานนี้'));
+  linked.forEach(f => list.appendChild(fileRow(f, true, errEl, okEl)));
+  const free = S.files.filter(f => !f.taskId);
+  fillSelect($('t-file-pick'), free.length
+    ? [{ v: '', t: '— เลือกไฟล์ที่ยังไม่ผูกงาน —' }].concat(free.map(f => ({ v: f.fileId, t: f.name + ' · รับ ' + thDate(f.receivedDate) })))
+    : [{ v: '', t: 'ไม่มีไฟล์ที่ยังไม่ผูกงาน' }]);
+  $('t-file-pick').disabled = !free.length;
+  $('btn-file-link').disabled = !free.length;
+}
+async function linkFromTask() {
+  const fileId = $('t-file-pick').value;
+  if (!fileId) { $('t-files-err').textContent = 'เลือกไฟล์ก่อน'; return; }
+  if (S.editing && S.editing.masked && !confirm(MASKED_LINK_MSG(fileId))) return;
+  $('btn-file-link').disabled = true;
+  try { await linkFile(fileId, S.editing.id, $('t-files-err'), $('t-files-ok')); }
+  finally { $('btn-file-link').disabled = false; renderTaskFiles(); }
+}
+
 /* ---------- แจ้งเตือน LINE (เปิด/ปิดของตัวเอง) ---------- */
 function renderNotifyBtn() {
   const b = $('btn-notify'), n = S.notify;
@@ -1295,6 +1552,11 @@ $('n-friend').addEventListener('click', ev => {
   // ในแอป LINE เปิดลิงก์เพิ่มเพื่อนด้วย LINE เอง
   try { if (window.liff && liff.isInClient()) { ev.preventDefault(); liff.openWindow({ url: S.notify.friendUrl, external: false }); } } catch (e) {}
 });
+$('btn-files').addEventListener('click', openFilesDlg);
+$('btn-files-close').addEventListener('click', () => $('dlg-files').close());
+$('btn-files-reload').addEventListener('click', () => { $('fl-err').textContent = ''; $('fl-ok').textContent = ''; reloadFiles(); });
+$('fl-filter').addEventListener('change', renderFilesDlg);
+$('btn-file-link').addEventListener('click', linkFromTask);
 $('h-year').addEventListener('change', renderHol);
 $('hol-form').addEventListener('submit', addHol);
 $('btn-hol-sync').addEventListener('click', syncHol);
