@@ -142,13 +142,18 @@
 
   /* ไฟล์จากกลุ่ม LINE (ระยะ 4) */
   .flist { display: grid; gap: 8px; }
+  /* กล่องเลือกที่มีตัวเลือกยาว (ชื่องาน/ชื่อไฟล์) ไม่ให้ดันกล่องกว้างเกินจอ: ให้คอลัมน์หดได้ และตัดบรรทัดข้อความ */
+  .pane, form, .flist, .frow { grid-template-columns: minmax(0, 1fr); }
   .frow { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; background: var(--bg); }
   .frow .fname { font-weight: 600; overflow-wrap: anywhere; }
-  .frow .meta { color: var(--muted); font-size: 14px; display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; }
-  .frow .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .frow .acts select { padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); max-width: 100%; min-width: 0; flex: 1 1 220px; }
-  .pick-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .pick-row select { flex: 1 1 220px; }
+  .frow .meta { color: var(--muted); font-size: 14px; display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; min-width: 0; }
+  .frow .meta span { min-width: 0; overflow-wrap: anywhere; }
+  .frow .due { white-space: normal; }
+  .frow .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; min-width: 0; }
+  .frow .acts select { padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); width: 100%; min-width: 0; flex: 1 1 100%; }
+  .pick-row { display: flex; gap: 8px; flex-wrap: wrap; min-width: 0; }
+  .pick-row select { flex: 1 1 100%; width: 100%; min-width: 0; }
+  .pane > p, .pane .muted { overflow-wrap: anywhere; }
   .hidden { display: none !important; }
   @media (max-width: 520px) {
     .row2, .row3 { grid-template-columns: 1fr; }
