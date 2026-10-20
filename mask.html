@@ -67,13 +67,46 @@ ul.sum{margin:8px 0 0;padding-left:20px}
 <!-- ================= MASK ================= -->
 <section id="tab-mask">
   <div class="card">
-    <h2><span class="step">1</span>เลือกไฟล์ข้อมูล</h2>
-    <div class="row">
-      <input type="file" id="fileIn" accept=".xlsx,.xls,.csv">
-      <span id="sheetBox" class="hidden">ชีต: <select id="sheetSel"></select></span>
-      <span id="hdrBox" class="hidden">หัวตารางอยู่แถวที่ <select id="hdrSel"></select></span>
+    <h2><span class="step">1</span>ใส่ข้อมูล</h2>
+    <div class="row" role="radiogroup" style="margin-bottom:12px">
+      <label><input type="radio" name="srcMode" value="file" checked> เลือกไฟล์ตาราง</label>
+      <label><input type="radio" name="srcMode" value="text"> พิมพ์หรือวางข้อความ / เล่าเรื่อง</label>
     </div>
-    <p class="note">รองรับ .xlsx .xls .csv · ไฟล์ต้นฉบับจะไม่ถูกแก้ไข</p>
+    <div id="srcFile">
+      <div class="row">
+        <input type="file" id="fileIn" accept=".xlsx,.xls,.csv">
+        <span id="sheetBox" class="hidden">ชีต: <select id="sheetSel"></select></span>
+        <span id="hdrBox" class="hidden">หัวตารางอยู่แถวที่ <select id="hdrSel"></select></span>
+      </div>
+      <p class="note">รองรับ .xlsx .xls .csv · ไฟล์ต้นฉบับจะไม่ถูกแก้ไข</p>
+    </div>
+    <div id="srcText" class="hidden">
+      <textarea id="mTxt" spellcheck="false" autocomplete="off" placeholder="พิมพ์หรือวางเรื่องราว เช่น นายสมมุติ ทดสอบ เจ้าหน้าที่พัสดุ ตกลงซื้อกับ หจก.ตัวอย่างการช่าง โอนเงินเข้าบัญชีเลขที่ 123-4-56789-0 ..."></textarea>
+      <div class="opts">
+        <label><input type="checkbox" id="tOptBare" checked> ค้นหาชื่อที่ไม่มีคำนำหน้าด้วย (เช่น เขียน "นายสมมุติ ทดสอบ" ครั้งแรก แล้วต่อมาเขียนแค่ "สมมุติ")</label>
+        <label><input type="checkbox" id="tOptAcc" checked> แทนเลขบัญชีธนาคารด้วยรหัส ACC</label>
+        <label><input type="checkbox" id="tOptId" checked> แทนเลขบัตรประชาชน 13 หลักด้วย [เลขบัตร]</label>
+        <label><input type="checkbox" id="tOptPhone" checked> แทนเบอร์โทรศัพท์ด้วย [โทร]</label>
+        <label><input type="checkbox" id="tOptMail" checked> แทนอีเมลด้วย [อีเมล]</label>
+      </div>
+      <button class="primary" id="scanBtn">ค้นหาชื่อในข้อความ</button>
+      <p class="note">ระบบหาชื่อจากคำนำหน้า (นาย นาง นางสาว ยศ ดร.) และชื่อบริษัท หจก. ร้าน · ชื่อที่ไม่มีคำนำหน้าระบบหาไม่เจอ ให้เพิ่มเองในขั้นถัดไป</p>
+    </div>
+  </div>
+
+  <div class="card hidden" id="foundCard">
+    <h2><span class="step">2</span>ตรวจรายชื่อที่จะปิด</h2>
+    <p class="note">ติ๊กออกถ้าไม่ใช่ชื่อ · แก้ข้อความได้ถ้าระบบตัดชื่อเกินหรือขาด (ข้อความต้องตรงกับที่เขียนในเรื่อง) · ชื่อเดียวกันได้รหัสเดียวกัน</p>
+    <div class="tablewrap"><table id="foundTable"><thead><tr><th>ปิด</th><th>ชื่อที่พบ</th><th>ประเภท</th><th>พบ</th></tr></thead><tbody></tbody></table></div>
+    <div class="row" style="margin-top:10px">
+      <input type="text" id="addName" placeholder="เพิ่มชื่อที่ระบบหาไม่เจอ" autocomplete="off" spellcheck="false" style="flex:1 1 220px">
+      <select id="addPfx"><option value="P">บุคคล (P)</option><option value="V">บริษัท/ร้าน (V)</option><option value="X">อื่น ๆ (X)</option></select>
+      <button class="ghost" id="addBtn">เพิ่ม</button>
+    </div>
+    <div style="margin-top:14px"><button class="primary" id="tRunBtn">ปิดชื่อในข้อความ</button></div>
+    <div id="tResult" class="hidden" style="margin-top:14px"></div>
+    <textarea id="tOut" class="hidden" style="margin-top:12px" readonly></textarea>
+    <div class="row hidden" id="tOutBtns" style="margin-top:8px"><button class="ghost" id="tCopyBtn">คัดลอกข้อความที่ปิดชื่อแล้ว</button></div>
   </div>
 
   <div class="card hidden" id="colCard">
@@ -111,7 +144,7 @@ ul.sum{margin:8px 0 0;padding-left:20px}
   <div class="card">
     <h2><span class="step">2</span>ข้อความหรือไฟล์ที่ต้องการเปิดรหัส</h2>
     <p class="note">วางข้อความที่ได้จาก AI เช่น ผลวิเคราะห์ หรือร่างรายงาน</p>
-    <textarea id="txtIn" placeholder="เช่น ผู้ขาย V003 ได้รับงาน 12 ครั้ง รวม 1,250,000 บาท ..."></textarea>
+    <textarea id="txtIn" spellcheck="false" placeholder="เช่น ผู้ขาย V003 ได้รับงาน 12 ครั้ง รวม 1,250,000 บาท ..."></textarea>
     <div class="row" style="margin-top:10px">
       <button class="primary" id="txtBtn" disabled>เปิดรหัสในข้อความ</button>
       <span class="note">หรือไฟล์ผลลัพธ์ (.xlsx/.csv):</span>
@@ -169,7 +202,7 @@ ul.sum{margin:8px 0 0;padding-left:20px}
   <div class="card">
     <h2>ขั้นตอนใช้งาน</h2>
     <ol>
-      <li>แท็บ ① เลือกไฟล์ข้อมูลจากหน่วยรับตรวจ</li>
+      <li>แท็บ ① เลือกไฟล์ข้อมูลจากหน่วยรับตรวจ หรือเลือก <b>พิมพ์หรือวางข้อความ</b> เพื่อเล่าเรื่องแล้วให้ระบบปิดชื่อ (ตรวจรายชื่อที่พบ เพิ่มชื่อที่ขาด แล้วกดปิดชื่อ จะได้ข้อความสำหรับคัดลอกไปให้ AI และไฟล์ <code>ข้อความ_กุญแจ</code>)</li>
       <li>ตรวจแต่ละคอลัมน์ เลือก <b>แทนด้วยรหัส</b> (ชื่อคน ชื่อบริษัท เลขบัญชี ฯลฯ) · <b>ลบคอลัมน์</b> (ข้อมูลที่ไม่ใช้วิเคราะห์ เช่น ที่อยู่ เบอร์โทร) · <b>เก็บไว้</b> (วันที่ จำนวนเงิน วิธีจัดซื้อ)</li>
       <li>กดปุ่ม จะได้ 2 ไฟล์
         <ul>
@@ -196,6 +229,7 @@ ul.sum{margin:8px 0 0;padding-left:20px}
       <li>ใช้รหัสแทนชื่อแล้วยัง<b>อาจระบุตัวได้</b> ถ้าข้อมูลที่เหลือเจาะจงมาก เช่น ผู้ขายรายเดียวในตำบล หรือสัญญามูลค่าเฉพาะตัว ให้พิจารณาลบคอลัมน์หรือส่งเป็นยอดสรุปแทน</li>
       <li>ระบบค้นชื่อในช่องข้อความได้เฉพาะชื่อที่ตรงกับในคอลัมน์ที่แทนรหัส ชื่อที่สะกดต่างกันหรือชื่อเล่นจะหาไม่เจอ</li>
       <li>เลขบัตร/เบอร์โทร/อีเมล ที่ปนในข้อความ ระบบจับจากรูปแบบตัวเลข อาจไม่ครบทุกกรณี</li>
+      <li>โหมดพิมพ์ข้อความ ระบบหาชื่อได้เฉพาะที่มีคำนำหน้า (นาย นาง นางสาว ยศ ดร.) หรือขึ้นต้นด้วยบริษัท หจก. ร้าน ชื่อเล่น ชื่อหมู่บ้าน ชื่อตำแหน่งเฉพาะ ต้องเพิ่มเองหรือเขียนเลี่ยง</li>
       <li>ไฟล์กุญแจคือข้อมูลลับระดับเดียวกับข้อมูลต้นฉบับ อย่าเก็บไว้ในโฟลเดอร์ที่เชื่อมกับ AI</li>
     </ul>
   </div>
@@ -367,6 +401,120 @@ $('#runBtn').addEventListener('click',()=>{
    <li>พบชื่อปนในช่องข้อความ ${stats.free} จุด · เลขบัตร ${stats.id} · เบอร์โทร ${stats.phone} · อีเมล ${stats.mail} (แทนแล้ว)</li></ul>
    <p style="margin:8px 0 0"><b>ก่อนส่งให้ AI:</b> เปิดไฟล์ <code>_ปิดชื่อ</code> ตรวจด้วยตาอีกครั้ง · ย้ายไฟล์ <code>_กุญแจ</code> ไปเก็บในที่ปลอดภัย</p>`;
 });
+
+// ---------- MASK: ข้อความที่พิมพ์ ----------
+function setSrcMode(){
+  const t=document.querySelector('input[name="srcMode"]:checked').value==='text';
+  $('#srcFile').classList.toggle('hidden',t); $('#srcText').classList.toggle('hidden',!t);
+  ['#colCard','#optCard','#runCard'].forEach(s=>$(s).classList.toggle('hidden',t||!cols.length));
+  $('#foundCard').classList.toggle('hidden',!t||!scanned);
+}
+document.querySelectorAll('input[name="srcMode"]').forEach(r=>r.addEventListener('change',setSrcMode));
+
+const TH='ก-ฮะ-ฺเ-ๅ็-๎';
+const NOT_SURNAME='(?:ได้|เป็น|และ|ซึ่ง|ตำแหน่ง|กับ|จาก|แจ้ง|อายุ|บ้านเลข|เลขที่|โทร|ไม่|จึง|ว่า|เมื่อ|โดย|หรือ|อยู่|ผู้|ที่|ใน|ให้|เพื่อ|ต่อ|ยื่น|ร้อง|กล่าว|นั้น|นี้)';
+const PERSON_RE=new RegExp('(?:นางสาว|น\\.ส\\.|นาย(?!ก|อำเภอ|ช่าง|ทะเบียน|จ้าง|หน้า|ประกัน|ทุน|ด่าน|ตรวจ|งาน|ทหาร|แพทย์|ห้าง|ร้อย|พัน|สิบ|พล|เรือ|ท่า|สถานี)|นาง(?!พยาบาล|งาม|ฟ้า)|ด\\.ต\\.|ด\\.ญ\\.|ด\\.ช\\.|(?:ส|ร|พ|พล)\\.ต\\.[ตทอ]\\.|จ\\.ส\\.[ตอท]\\.|ว่าที่\\s?ร\\.ต\\.(?:หญิง)?|ดร\\.)\\s?['+TH+']{2,30}(?:\\s(?!'+NOT_SURNAME+')['+TH+']{2,25}(?!['+TH+']))?','g');
+const COMP_RE=new RegExp('(?:บริษัท|บจก\\.)\\s?(?!ฯ|ดังกล่าว|ที่|ใน|นี้|ของ|เอกชน|ผู้)[^\\n,;:()ฯ]{1,60}?\\s?จำกัด(?:\\s?\\(มหาชน\\))?'
+  +'|(?:ห้างหุ้นส่วนจำกัด|ห้างหุ้นส่วนสามัญ|หจก\\.|บจก\\.|ร้าน(?!ค้า(?!['+TH+'])))\\s?['+TH+'A-Za-z0-9&\\-]{2,40}','g');
+const ACC_KW_RE=/(บัญชี[^\d\n]{0,30}?)(\d[\d\- ]{8,18}\d)(?!\d)/g;
+const ACC_RE=/(?<!\d)\d{3}-\d-\d{5}-\d(?!\d)/g;
+const TITLE_HEAD_RE=new RegExp('^(?:นางสาว|น\\.ส\\.|นาย|นาง|ด\\.ต\\.|ด\\.ญ\\.|ด\\.ช\\.|(?:ส|ร|พ|พล)\\.ต\\.[ตทอ]\\.|จ\\.ส\\.[ตอท]\\.|ว่าที่\\s?ร\\.ต\\.(?:หญิง)?|ดร\\.)\\s?');
+const RUNON_RE=/(?:ได้|เป็น|และ|ซึ่ง|ที่|โดย|จึง|ไม่|ว่า|กับ|จาก|แจ้ง|ยื่น|เมื่อ)/;
+let found=[], scanned=false;
+// ชื่อที่เขียนติดข้อความ เช่น "นายสมมุติได้โอนเงิน" -> "นายสมมุติ" (ตัดตามชื่อที่พบแล้ว หรือคำเชื่อมทั่วไป)
+function trimRunOn(h,firsts){
+  const t=h.text.match(TITLE_HEAD_RE); if(!t || /\s/.test(h.text.slice(t[0].length))) return;
+  const rest=h.text.slice(t[0].length);
+  let cut=-1;
+  for(const f of firsts) if(f.length<rest.length && rest.startsWith(f) && f.length>cut) cut=f.length;
+  if(cut<0){ const m=rest.slice(2).match(RUNON_RE); if(m) cut=2+m.index; }
+  if(cut>=2){ h.e=h.s+t[0].length+cut; h.text=t[0]+rest.slice(0,cut); }
+}
+
+function countIn(src,v){ if(!v) return 0; return (src.match(new RegExp(escRe(v).replace(/ /g,'\\s+'),'g'))||[]).length; }
+$('#scanBtn').addEventListener('click',()=>{
+  const src=$('#mTxt').value;
+  if(!src.trim()){ alert('ยังไม่มีข้อความ'); return; }
+  const hits=[];
+  for(const [re,pfx] of [[COMP_RE,'V'],[PERSON_RE,'P']]){ re.lastIndex=0; let m;
+    while((m=re.exec(src))){ const s=m.index,e=s+m[0].length; if(!hits.some(h=>s<h.e&&e>h.s)) hits.push({s,e,pfx,text:norm(m[0])}); } }
+  hits.sort((a,b)=>a.s-b.s);
+  const firsts=hits.filter(h=>h.pfx==='P').map(h=>{ const t=h.text.match(TITLE_HEAD_RE); return t&&/\s/.test(h.text.slice(t[0].length))?h.text.slice(t[0].length).split(' ')[0]:''; }).filter(Boolean);
+  hits.forEach(h=>{ if(h.pfx==='P') trimRunOn(h,firsts); });
+  // "นายสมมุติ" ที่เขียนย่อหลังจากเคยเขียน "นายสมมุติ ทดสอบ" ถือเป็นคนเดียวกัน ไม่ต้องแยกรายการ
+  for(let i=hits.length-1;i>=0;i--){ const h=hits[i]; if(h.pfx!=='P') continue; const t=h.text.match(TITLE_HEAD_RE);
+    if(t && firsts.includes(h.text.slice(t[0].length))) hits.splice(i,1); }
+  const manual=found.filter(x=>x.manual), seen=new Set(manual.map(x=>x.text));
+  found=[];
+  hits.forEach(h=>{ if(!seen.has(h.text)){ seen.add(h.text); found.push({text:h.text,pfx:h.pfx,on:true,manual:false}); } });
+  found=found.concat(manual);
+  scanned=true; renderFound(); setSrcMode();
+  $('#tResult').classList.add('hidden'); $('#tOut').classList.add('hidden'); $('#tOutBtns').classList.add('hidden');
+});
+function renderFound(){
+  const src=$('#mTxt').value, tb=$('#foundTable tbody');
+  tb.innerHTML=found.length?found.map((x,i)=>`<tr>
+    <td><input type="checkbox" class="fOn" data-i="${i}" ${x.on?'checked':''}></td>
+    <td><input type="text" class="fTxt" data-i="${i}" value="${esc(x.text)}" autocomplete="off" spellcheck="false" style="width:100%;min-width:220px"></td>
+    <td><select class="fPfx" data-i="${i}"><option value="P" ${x.pfx==='P'?'selected':''}>บุคคล (P)</option><option value="V" ${x.pfx==='V'?'selected':''}>บริษัท/ร้าน (V)</option><option value="X" ${x.pfx==='X'?'selected':''}>อื่น ๆ (X)</option></select></td>
+    <td class="note">${countIn(src,x.text)} ครั้ง</td></tr>`).join('')
+    :'<tr><td colspan="4" class="note">ไม่พบชื่อที่มีคำนำหน้า เพิ่มชื่อเองได้ด้านล่าง</td></tr>';
+  tb.querySelectorAll('.fOn').forEach(c=>c.addEventListener('change',e=>{found[+e.target.dataset.i].on=e.target.checked;}));
+  tb.querySelectorAll('.fTxt').forEach(c=>c.addEventListener('input',e=>{found[+e.target.dataset.i].text=norm(e.target.value);}));
+  tb.querySelectorAll('.fPfx').forEach(c=>c.addEventListener('change',e=>{found[+e.target.dataset.i].pfx=e.target.value;}));
+}
+function addManual(){
+  const v=norm($('#addName').value); if(!v) return;
+  if(found.some(x=>x.text===v)){ alert('มีชื่อนี้ในรายการแล้ว'); return; }
+  found.push({text:v,pfx:$('#addPfx').value,on:true,manual:true});
+  $('#addName').value=''; renderFound(); $('#addName').focus();
+}
+$('#addBtn').addEventListener('click',addManual);
+$('#addName').addEventListener('keydown',e=>{ if(e.key==='Enter') addManual(); });
+
+$('#tRunBtn').addEventListener('click',()=>{
+  let src=$('#mTxt').value;
+  if(!src.trim()){ alert('ยังไม่มีข้อความ'); return; }
+  const list=found.filter(x=>x.on&&x.text).map(x=>({...x,at:(i=>i<0?Infinity:i)(src.search(new RegExp(escRe(x.text).replace(/ /g,'\\s+'))))})).sort((a,b)=>a.at-b.at);
+  const maps={}, counters={}, keyRows=[];
+  function codeOf(pfx,v,from){
+    maps[pfx]=maps[pfx]||new Map();
+    if(!maps[pfx].has(v)){ counters[pfx]=(counters[pfx]||0)+1; const code=pfx+String(counters[pfx]).padStart(3,'0'); maps[pfx].set(v,code); keyRows.push([code,v,from]); }
+    return maps[pfx].get(v);
+  }
+  const lookup=new Map(), all=[];
+  const add=(s,c,min)=>{ s=s.trim(); if(s.length>=min && !lookup.has(s)){ all.push(s); lookup.set(s,c); } };
+  list.forEach(x=>{ const c=codeOf(x.pfx,x.text,'ข้อความที่พิมพ์'); add(x.text,c,2);
+    const t=x.text.match(TITLE_HEAD_RE); if(t){ const rest=x.text.slice(t[0].length); if(/\s/.test(rest)) add(t[0]+rest.split(' ')[0],c,2); } });
+  if($('#tOptBare').checked) list.forEach(x=>{ const c=lookup.get(x.text);
+    const core=x.text.replace(TITLE_RE,' ').replace(/\s+/g,' ').trim();
+    add(core,c,3); if(!/^\d+$/.test(core)) core.split(' ').forEach(w=>add(w,c,4)); });
+  all.sort((a,b)=>b.length-a.length);
+  const stats={name:0,acc:0,id:0,phone:0,mail:0};
+  if(all.length){ const re=new RegExp(all.map(s=>escRe(s).replace(/ /g,'\\s+')).join('|'),'g');
+    src=src.replace(re,m=>{stats.name++;return lookup.get(m.replace(/\s+/g,' '));}); }
+  if($('#tOptAcc').checked){
+    src=src.replace(ACC_KW_RE,(m,kw,num)=>{stats.acc++;return kw+codeOf('ACC',num.replace(/\s+/g,''),'ข้อความที่พิมพ์ (เลขบัญชี)');});
+    src=src.replace(ACC_RE,m=>{stats.acc++;return codeOf('ACC',m,'ข้อความที่พิมพ์ (เลขบัญชี)');});
+  }
+  if($('#tOptId').checked) src=src.replace(ID_RE,()=>{stats.id++;return '[เลขบัตร]';});
+  if($('#tOptPhone').checked) src=src.replace(PHONE_RE,()=>{stats.phone++;return '[โทร]';});
+  if($('#tOptMail').checked) src=src.replace(MAIL_RE,()=>{stats.mail++;return '[อีเมล]';});
+  $('#tOut').value=src; $('#tOut').classList.remove('hidden'); $('#tOutBtns').classList.remove('hidden');
+  let keyMsg='ไม่มีชื่อที่ต้องสร้างไฟล์กุญแจ';
+  if(keyRows.length){
+    const st=stamp(), kb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(kb,XLSX.utils.aoa_to_sheet([['รหัส','ข้อมูลจริง','มาจากคอลัมน์'],...keyRows]),'กุญแจ');
+    XLSX.utils.book_append_sheet(kb,XLSX.utils.aoa_to_sheet([['คำเตือน'],['ไฟล์นี้คือกุญแจเปิดรหัสกลับเป็นข้อมูลจริง ถือเป็นข้อมูลลับระดับเดียวกับต้นฉบับ'],['ห้ามส่งให้ AI หรือบุคคลอื่น ห้ามเก็บในโฟลเดอร์ที่เชื่อมกับ AI'],['ไฟล์ต้นทาง: ข้อความที่พิมพ์'],['สร้างเมื่อ: '+new Date().toLocaleString('th-TH')]]),'คำเตือน');
+    download(kb,`ข้อความ_กุญแจ_${st}.xlsx`);
+    keyMsg=`ดาวน์โหลดไฟล์ <code>ข้อความ_กุญแจ_${st}.xlsx</code> แล้ว (${keyRows.length} รหัส) ใช้เปิดรหัสกลับในแท็บ ②`;
+  }
+  const r=$('#tResult'); r.className='ok'; r.classList.remove('hidden');
+  r.innerHTML=`ปิดชื่อแล้ว ${stats.name} จุด · เลขบัญชี ${stats.acc} · เลขบัตร ${stats.id} · เบอร์โทร ${stats.phone} · อีเมล ${stats.mail}
+   <ul class="sum"><li>${keyMsg}</li></ul>
+   <p style="margin:8px 0 0"><b>ก่อนส่งให้ AI:</b> อ่านข้อความด้านล่างด้วยตาอีกครั้ง ชื่อที่ไม่มีคำนำหน้าหรือสะกดต่างกันอาจยังหลุดอยู่ · ย้ายไฟล์ <code>_กุญแจ</code> ไปเก็บในที่ปลอดภัย</p>`;
+});
+$('#tCopyBtn').addEventListener('click',()=>copyText($('#tOut').value,$('#tCopyBtn')));
 
 // ---------- UNMASK ----------
 $('#keyIn').addEventListener('change',async e=>{
